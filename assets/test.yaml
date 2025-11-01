@@ -1,0 +1,15 @@
+#####--------传统视觉调参--------#####
+threshold: 150
+max_angle_error: 45 
+min_lightbar_ratio: 1.5
+max_lightbar_ratio: 20
+min_lightbar_length: 8
+min_armor_ratio: 1
+max_armor_ratio: 5
+max_side_ratio: 1.5
+max_rectangular_error: 25 
+min_confidence: 0.8
+
+#####--------串口--------#####
+serial_port:
+baudrate: 

@@ -60,6 +60,10 @@
         "ratio": "cpp",
         "sstream": "cpp",
         "stop_token": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "functional": "cpp",
+        "mutex": "cpp",
+        "unordered_map": "cpp",
+        "xhash": "cpp"
     }
 }
