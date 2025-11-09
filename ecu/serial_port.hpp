@@ -12,33 +12,37 @@
 #include "ecu/command.hpp"
 #include "tools/logger.hpp"
 #include "tools/thread_safe_queue.hpp"
-#include "io/public_param.hpp"
 
-enum Mode { idle, auto_aim, small_buff, big_buff, outpost };
-const std::vector<std::string> MODES = {"idle", "auto_aim", "small_buff", "big_buff", "outpost"};
+// // 哨兵专有
+// enum ShootMode { left_shoot, right_shoot, both_shoot };
+// const std::vector<std::string> SHOOT_MODES = {"left_shoot", "right_shoot", "both_shoot"};
 
 namespace ecu
 {
-  class SerialBoard
+  enum Mode { idle, auto_aim, small_buff, big_buff, outpost };
+  const std::vector<std::string> MODES = {"idle", "auto_aim", "small_buff", "big_buff", "outpost"};
+
+  struct IMUData {
+    Eigen::Quaterniond q;
+    std::chrono::steady_clock::time_point timestamp;
+  };
+
+  class SerialPort
   {
   public:
     double bullet_speed;
     Mode mode;
     // ShootMode shoot_mode; 烧饼
-    double ft_angle;
+    double ft_angle; // flight time angle
 
-    explicit SerialBoard(const std::string& config_path);
+    explicit SerialPort(const std::string& config_path);
     ~SerialBoard();
 
     Eigen::Quaterniond imu_at(std::chrono::steady_clock::time_point timestamp);
+
     void send(io::Command command) const;
 
   private:
-    struct IMUData {
-      Eigen::Quaterniond q;
-      std::chrono::steady_clock::time_point timestamp;
-    };
-
     tools::ThreadSafeQueue<IMUData> queue_;
 
     int fd_; // 串口文件描述符

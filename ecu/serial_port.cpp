@@ -1,4 +1,4 @@
-#include "ecu/serial_cboard.hpp"
+#include "ecu/serial_port.hpp"
 
 #include <fcntl.h>
 #include <termios.h>
@@ -11,7 +11,7 @@
 
 namespace ecu
 {
-  SerialBoard::SerialBoard(const std::string& config_path)
+  SerialPort::SerialPort(const std::string& config_path)
       : mode(Mode::idle)
       , bullet_speed(0)
       , ft_angle(0)
@@ -19,7 +19,7 @@ namespace ecu
       , fd_(-1)
       , running_(true)
   {
-    tools::logger()->info("初始化 SerialBoard ...");
+    tools::logger()->info("[SerialBoard] 初始化 SerialBoard ...");
 
     // 读取配置文件
     auto dev_path = read_yaml(config_path);
@@ -40,7 +40,7 @@ namespace ecu
       cfsetospeed(&tty, B115200);
       cfsetispeed(&tty, B115200);
     } else {
-      tools::logger()->warn("不支持的波特率 {}, 使用 115200 作为默认值", baudrate_);
+      tools::logger()->warn("[SerialBoard]不支持的波特率 {}, 使用 115200 作为默认值", baudrate_);
       cfsetospeed(&tty, B115200);
       cfsetispeed(&tty, B115200);
     }
@@ -67,7 +67,7 @@ namespace ecu
     read_thread_ = std::thread(&SerialBoard::readLoop, this);
   }
 
-  SerialBoard::~SerialBoard()
+  SerialPort::~SerialPort()
   {
     running_ = false;
     if (read_thread_.joinable())
@@ -76,7 +76,7 @@ namespace ecu
       close(fd_);
   }
 
-  void SerialBoard::readLoop()
+  void SerialPort::readLoop()
   {
     tools::logger()->info("启动串口读取线程...");
 
@@ -116,7 +116,7 @@ namespace ecu
     }
   }
 
-  void SerialBoard::parseFrame(const std::vector<uint8_t>& recv_buf)
+  void SerialPort::parseFrame(const std::vector<uint8_t>& recv_buf)
   {
     if (fd_ < 0) {
       tools::logger()->warn("[SerialBoard] 异常帧（帧头/帧尾错误）");
@@ -164,7 +164,7 @@ namespace ecu
     // );
   }
 
-  Eigen::Quaterniond SerialBoard::imu_at(std::chrono::steady_clock::time_point timestamp)
+  Eigen::Quaterniond SerialPort::imu_at(std::chrono::steady_clock::time_point timestamp)
   {
     if (data_behind_.timestamp < timestamp)
       data_ahead_ = data_behind_;
@@ -207,7 +207,7 @@ namespace ecu
     return q_interp.normalized();
   }
 
-  void SerialBoard::send(Command command) const
+  void SerialPort::send(Command command) const
   {
     if (fd_ < 0) {
       tools::logger()->warn("[SerialBoard] 串口未打开，无法发送数据");
@@ -216,7 +216,7 @@ namespace ecu
 
     const uint8_t FRAME_HEAD = 0xED;
     const uint8_t FRAME_TAIL = 0xEC;
-    const size_t FRAME_LEN = 11;
+    const size_t FRAME_LEN = 12;
 
     uint8_t frame[FRAME_LEN] = {0};
 
@@ -230,13 +230,13 @@ namespace ecu
     memcpy(&frame[5], &command.pitch, sizeof(float));
 
     // 发射标志
-    frame[8] = 0x00; // 0x77 单发, 0x88 连发, 其他禁止
+    frame[9] = 0x00; // 0x77 单发, 0x88 连发, 其他禁止
 
     // 模式标志
-    frame[9] = 0x00; // 0x55 风车自动, 0x00 装甲板
+    frame[10] = 0x00; // 0x55 风车自动, 0x00 装甲板
 
     // 帧尾
-    frame[10] = FRAME_TAIL;
+    frame[11] = FRAME_TAIL;
 
     // 发送数据
     ssize_t written = write(fd_, frame, FRAME_LEN);
@@ -258,7 +258,7 @@ namespace ecu
     // std::cout << std::endl;
   }
 
-  std::string SerialBoard::read_yaml(const std::string& config_path)
+  std::string SerialPort::read_yaml(const std::string& config_path)
   {
     tools::logger()->info("读取配置文件中...");
     auto yaml = tools::load(config_path);
@@ -272,6 +272,7 @@ namespace ecu
 
     port_ = yaml["serial_port"].as<std::string>();
     baudrate_ = yaml["baudrate"].as<int>();
+
     return port_;
   }
 

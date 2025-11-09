@@ -11,5 +11,10 @@ max_rectangular_error: 25
 min_confidence: 0.8
 
 #####--------串口--------#####
-serial_port:
-baudrate: 
+serial_port: 
+baudrate: 152000
+
+#####--------相机曝光--------#####
+camera_name:
+gain:
+vid_pid:
