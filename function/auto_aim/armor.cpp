@@ -13,12 +13,12 @@ namespace xz_vision
     std::vector<cv::Point2f> corners(4);
     rotated_rect.points(&corners[0]);
     std::sort(corners.begin(), corners.end(), [](const cv::Point2f& a, const cv::Point2f& b) {
-      return (a.y == b.y) ? (a.x < b.x) : (a.y < b.y)
+      return (a.y == b.y) ? (a.x < b.x) : (a.y < b.y);
     });
 
     center = rotated_rect.center;
     top = (corners[0] + corners[1]) * 0.5f;
-    bottom = (corner[2] + corner[3]) * 0.5f;
+    bottom = (corners[2] + corners[3]) * 0.5f;
     top2bottom = bottom - top;
 
     points.emplace_back(top);
@@ -69,11 +69,11 @@ namespace xz_vision
     double min_lightbar_length = std::min(left.length, right.length);
     side_ratio = max_lightbar_length / min_lightbar_length;
 
-    rectangular_error = ComputeRectangularError(const Lightbar& left, const Lightbar& right);
+    rectangular_error = ComputeRectangularError(left, right);
   };
 
   // 自动权重调节 + 综合矩形误差计算
-  double Armor::ComputeRectangularError(const Light& left, const Light& right)
+  double Armor::ComputeRectangularError(const Lightbar& left, const Lightbar& right)
   {
     // 平均灯条方向
     double angle_diff = std::abs(left.angle - right.angle);

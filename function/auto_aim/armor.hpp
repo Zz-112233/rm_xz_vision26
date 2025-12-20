@@ -121,9 +121,8 @@ namespace xz_vision
     bool duplicated;         // 是否重复识别
 
     Armor(const Lightbar& left, const Lightbar& right); // 传统视觉构造函数
-    double ComputeRectangularError(const Light& left, const Light& right);
+    double ComputeRectangularError(const Lightbar& left, const Lightbar& right);
 
-    // 待完成
     // 神经网络构造函数
-  }
+  };
 } // namespace xz_vision

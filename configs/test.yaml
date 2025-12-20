@@ -1,0 +1,64 @@
+# 传统视觉参数
+  # image size
+image_width: 1280
+image_height: 1024
+  # 阈值
+param_thresh: 40
+  # 条件满足时赋予的最大值
+param_maxval: 255
+  # 矩形核
+param_kernel_width: 4
+param_kernel_height: 4
+  # 是否启用调试(显示灰度图)
+whether_use_debug: true
+
+# 分类器
+classify_model: /home/chaichai/project/rm_xz_vision26/assets/tiny_resnet.onnx
+
+min_arrow_lightline_area: 0
+max_arrow_lightline_area: 500
+
+max_arrow_lightline_aspect_ratio: 5
+
+min_arrow_lightline_num: 4
+max_arrow_lightline_num: 13
+
+min_arrow_aspect_ratio: 2
+max_arrow_aspect_ratio: 12
+
+max_arrow_area: 4000
+
+max_same_arrow_area_ratio: 5
+# local roi
+local_roi_distance_ratio: 1.2
+local_roi_width: 200
+# armor area
+min_armor_lightline_area: 3000
+max_armor_lightline_area: 30000
+# armor contout area
+min_armor_lightline_contour_area: 500
+max_armor_lightline_contour_area: 7000
+# armor ratio
+min_armor_lightline_aspect_ratio: 1.5
+max_armor_lightline_aspect_ratio: 6 
+# armor area ratio
+max_same_armor_area_ratio: 3.3
+# armor distance
+min_same_armor_distance: 60
+max_same_armor_distance: 110
+# centerR area
+min_center_area: 100
+max_center_area: 1000
+# centerR ratio
+max_center_aspect_ratio: 2
+
+armor_center_vertical_distance_threshold: 90
+
+global_roi_length_ratio: 1.5
+
+armor_outside_width: 345.5
+armor_outside_y: 42.495
+armor_outside_height: 145.045
+
+armor_inside_width: 352.88
+armor_inside_y: 46.206
