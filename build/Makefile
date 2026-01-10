@@ -130,6 +130,19 @@ auto_buff_test/fast:
 .PHONY : auto_buff_test/fast
 
 #=============================================================================
+# Target rules for targets named auto_buff_main
+
+# Build rule for target.
+auto_buff_main: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 auto_buff_main
+.PHONY : auto_buff_main
+
+# fast build rule for target.
+auto_buff_main/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/auto_buff_main.dir/build.make CMakeFiles/auto_buff_main.dir/build
+.PHONY : auto_buff_main/fast
+
+#=============================================================================
 # Target rules for targets named auto_buff
 
 # Build rule for target.
@@ -154,6 +167,30 @@ tools: cmake_check_build_system
 tools/fast:
 	$(MAKE) $(MAKESILENT) -f tools/CMakeFiles/tools.dir/build.make tools/CMakeFiles/tools.dir/build
 .PHONY : tools/fast
+
+test/auto_buff_main.o: test/auto_buff_main.cpp.o
+.PHONY : test/auto_buff_main.o
+
+# target to build an object file
+test/auto_buff_main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/auto_buff_main.dir/build.make CMakeFiles/auto_buff_main.dir/test/auto_buff_main.cpp.o
+.PHONY : test/auto_buff_main.cpp.o
+
+test/auto_buff_main.i: test/auto_buff_main.cpp.i
+.PHONY : test/auto_buff_main.i
+
+# target to preprocess a source file
+test/auto_buff_main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/auto_buff_main.dir/build.make CMakeFiles/auto_buff_main.dir/test/auto_buff_main.cpp.i
+.PHONY : test/auto_buff_main.cpp.i
+
+test/auto_buff_main.s: test/auto_buff_main.cpp.s
+.PHONY : test/auto_buff_main.s
+
+# target to generate assembly for a file
+test/auto_buff_main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/auto_buff_main.dir/build.make CMakeFiles/auto_buff_main.dir/test/auto_buff_main.cpp.s
+.PHONY : test/auto_buff_main.cpp.s
 
 test/auto_buff_test.o: test/auto_buff_test.cpp.o
 .PHONY : test/auto_buff_test.o
@@ -188,8 +225,12 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... auto_buff"
+	@echo "... auto_buff_main"
 	@echo "... auto_buff_test"
 	@echo "... tools"
+	@echo "... test/auto_buff_main.o"
+	@echo "... test/auto_buff_main.i"
+	@echo "... test/auto_buff_main.s"
 	@echo "... test/auto_buff_test.o"
 	@echo "... test/auto_buff_test.i"
 	@echo "... test/auto_buff_test.s"

@@ -113,6 +113,7 @@ set(CMAKE_MAKEFILE_PRODUCTS
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/auto_buff_test.dir/DependInfo.cmake"
+  "CMakeFiles/auto_buff_main.dir/DependInfo.cmake"
   "function/auto_buff/CMakeFiles/auto_buff.dir/DependInfo.cmake"
   "tools/CMakeFiles/tools.dir/DependInfo.cmake"
   )

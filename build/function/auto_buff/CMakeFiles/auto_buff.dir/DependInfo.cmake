@@ -8,7 +8,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/chaichai/project/rm_xz_vision26/function/auto_buff/power_rune.cpp" "function/auto_buff/CMakeFiles/auto_buff.dir/power_rune.cpp.o" "gcc" "function/auto_buff/CMakeFiles/auto_buff.dir/power_rune.cpp.o.d"
   "/home/chaichai/project/rm_xz_vision26/function/auto_buff/rune_detector.cpp" "function/auto_buff/CMakeFiles/auto_buff.dir/rune_detector.cpp.o" "gcc" "function/auto_buff/CMakeFiles/auto_buff.dir/rune_detector.cpp.o.d"
+  "/home/chaichai/project/rm_xz_vision26/function/auto_buff/rune_solver.cpp" "function/auto_buff/CMakeFiles/auto_buff.dir/rune_solver.cpp.o" "gcc" "function/auto_buff/CMakeFiles/auto_buff.dir/rune_solver.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

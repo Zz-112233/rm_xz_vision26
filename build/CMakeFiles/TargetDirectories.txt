@@ -1,4 +1,5 @@
 /home/chaichai/project/rm_xz_vision26/build/CMakeFiles/auto_buff_test.dir
+/home/chaichai/project/rm_xz_vision26/build/CMakeFiles/auto_buff_main.dir
 /home/chaichai/project/rm_xz_vision26/build/CMakeFiles/edit_cache.dir
 /home/chaichai/project/rm_xz_vision26/build/CMakeFiles/rebuild_cache.dir
 /home/chaichai/project/rm_xz_vision26/build/function/auto_buff/CMakeFiles/auto_buff.dir
