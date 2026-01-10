@@ -123,6 +123,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "CMakeFiles/3.28.3/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.28.3/CMakeSystem.cmake"
   "/home/c/rm_xz_vision26/ecu/CMakeLists.txt"
+  "/home/c/rm_xz_vision26/function/auto_aim/CMakeLists.txt"
   "/home/c/rm_xz_vision26/function/auto_buff/CMakeLists.txt"
   "/home/c/rm_xz_vision26/tools/CMakeLists.txt"
   "/usr/lib/cmake/nlohmann_json/nlohmann_jsonConfig.cmake"
@@ -184,6 +185,7 @@ set(CMAKE_MAKEFILE_PRODUCTS
   "CMakeFiles/CMakeDirectoryInformation.cmake"
   "ecu/CMakeFiles/CMakeDirectoryInformation.cmake"
   "function/auto_buff/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "function/auto_aim/CMakeFiles/CMakeDirectoryInformation.cmake"
   "tools/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
@@ -194,5 +196,6 @@ set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/exit_test.dir/DependInfo.cmake"
   "ecu/CMakeFiles/ecu.dir/DependInfo.cmake"
   "function/auto_buff/CMakeFiles/auto_buff.dir/DependInfo.cmake"
+  "function/auto_aim/CMakeFiles/auto_aim.dir/DependInfo.cmake"
   "tools/CMakeFiles/tools.dir/DependInfo.cmake"
   )

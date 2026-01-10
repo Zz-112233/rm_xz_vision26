@@ -111,9 +111,39 @@ tools/CMakeFiles/tools.dir/imgs_tool.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/tools.dir/imgs_tool.cpp.s"
 	cd /home/c/rm_xz_vision26/build/tools && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/c/rm_xz_vision26/tools/imgs_tool.cpp -o CMakeFiles/tools.dir/imgs_tool.cpp.s
 
+tools/CMakeFiles/tools.dir/img_tools.cpp.o: tools/CMakeFiles/tools.dir/flags.make
+tools/CMakeFiles/tools.dir/img_tools.cpp.o: /home/c/rm_xz_vision26/tools/img_tools.cpp
+tools/CMakeFiles/tools.dir/img_tools.cpp.o: tools/CMakeFiles/tools.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/c/rm_xz_vision26/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object tools/CMakeFiles/tools.dir/img_tools.cpp.o"
+	cd /home/c/rm_xz_vision26/build/tools && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT tools/CMakeFiles/tools.dir/img_tools.cpp.o -MF CMakeFiles/tools.dir/img_tools.cpp.o.d -o CMakeFiles/tools.dir/img_tools.cpp.o -c /home/c/rm_xz_vision26/tools/img_tools.cpp
+
+tools/CMakeFiles/tools.dir/img_tools.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/tools.dir/img_tools.cpp.i"
+	cd /home/c/rm_xz_vision26/build/tools && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/c/rm_xz_vision26/tools/img_tools.cpp > CMakeFiles/tools.dir/img_tools.cpp.i
+
+tools/CMakeFiles/tools.dir/img_tools.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/tools.dir/img_tools.cpp.s"
+	cd /home/c/rm_xz_vision26/build/tools && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/c/rm_xz_vision26/tools/img_tools.cpp -o CMakeFiles/tools.dir/img_tools.cpp.s
+
+tools/CMakeFiles/tools.dir/plotter.cpp.o: tools/CMakeFiles/tools.dir/flags.make
+tools/CMakeFiles/tools.dir/plotter.cpp.o: /home/c/rm_xz_vision26/tools/plotter.cpp
+tools/CMakeFiles/tools.dir/plotter.cpp.o: tools/CMakeFiles/tools.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/c/rm_xz_vision26/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object tools/CMakeFiles/tools.dir/plotter.cpp.o"
+	cd /home/c/rm_xz_vision26/build/tools && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT tools/CMakeFiles/tools.dir/plotter.cpp.o -MF CMakeFiles/tools.dir/plotter.cpp.o.d -o CMakeFiles/tools.dir/plotter.cpp.o -c /home/c/rm_xz_vision26/tools/plotter.cpp
+
+tools/CMakeFiles/tools.dir/plotter.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/tools.dir/plotter.cpp.i"
+	cd /home/c/rm_xz_vision26/build/tools && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/c/rm_xz_vision26/tools/plotter.cpp > CMakeFiles/tools.dir/plotter.cpp.i
+
+tools/CMakeFiles/tools.dir/plotter.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/tools.dir/plotter.cpp.s"
+	cd /home/c/rm_xz_vision26/build/tools && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/c/rm_xz_vision26/tools/plotter.cpp -o CMakeFiles/tools.dir/plotter.cpp.s
+
 tools: tools/CMakeFiles/tools.dir/exiter.cpp.o
 tools: tools/CMakeFiles/tools.dir/logger.cpp.o
 tools: tools/CMakeFiles/tools.dir/imgs_tool.cpp.o
+tools: tools/CMakeFiles/tools.dir/img_tools.cpp.o
+tools: tools/CMakeFiles/tools.dir/plotter.cpp.o
 tools: tools/CMakeFiles/tools.dir/build.make
 .PHONY : tools
 

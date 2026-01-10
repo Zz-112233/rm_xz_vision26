@@ -182,6 +182,19 @@ auto_buff/fast:
 .PHONY : auto_buff/fast
 
 #=============================================================================
+# Target rules for targets named auto_aim
+
+# Build rule for target.
+auto_aim: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 auto_aim
+.PHONY : auto_aim
+
+# fast build rule for target.
+auto_aim/fast:
+	$(MAKE) $(MAKESILENT) -f function/auto_aim/CMakeFiles/auto_aim.dir/build.make function/auto_aim/CMakeFiles/auto_aim.dir/build
+.PHONY : auto_aim/fast
+
+#=============================================================================
 # Target rules for targets named tools
 
 # Build rule for target.
@@ -274,6 +287,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... auto_aim"
 	@echo "... auto_buff"
 	@echo "... auto_buff_test"
 	@echo "... ecu"

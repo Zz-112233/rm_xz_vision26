@@ -92,13 +92,17 @@ test1_EXTERNAL_OBJECTS = \
 "/home/c/rm_xz_vision26/build/function/auto_buff/CMakeFiles/auto_buff.dir/rune_detector.cpp.o" \
 "/home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir/exiter.cpp.o" \
 "/home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir/logger.cpp.o" \
-"/home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir/imgs_tool.cpp.o"
+"/home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir/imgs_tool.cpp.o" \
+"/home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir/img_tools.cpp.o" \
+"/home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir/plotter.cpp.o"
 
 test1: CMakeFiles/test1.dir/test/test1.cpp.o
 test1: function/auto_buff/CMakeFiles/auto_buff.dir/rune_detector.cpp.o
 test1: tools/CMakeFiles/tools.dir/exiter.cpp.o
 test1: tools/CMakeFiles/tools.dir/logger.cpp.o
 test1: tools/CMakeFiles/tools.dir/imgs_tool.cpp.o
+test1: tools/CMakeFiles/tools.dir/img_tools.cpp.o
+test1: tools/CMakeFiles/tools.dir/plotter.cpp.o
 test1: CMakeFiles/test1.dir/build.make
 test1: /usr/lib/x86_64-linux-gnu/libopencv_stitching.so.4.5.4d
 test1: /usr/lib/x86_64-linux-gnu/libopencv_alphamat.so.4.5.4d
@@ -136,6 +140,7 @@ test1: /usr/lib/x86_64-linux-gnu/libopencv_wechat_qrcode.so.4.5.4d
 test1: /usr/lib/x86_64-linux-gnu/libopencv_xobjdetect.so.4.5.4d
 test1: /usr/lib/x86_64-linux-gnu/libopencv_xphoto.so.4.5.4d
 test1: ecu/libecu.a
+test1: function/auto_aim/libauto_aim.a
 test1: /usr/lib/x86_64-linux-gnu/libyaml-cpp.so.0.7.0
 test1: /usr/lib/x86_64-linux-gnu/libfmt.so.8.1.1
 test1: /home/c/opt/intel/openvino_ubuntu22_2025/runtime/lib/intel64/libopenvino.so.2025.4.0
@@ -171,12 +176,12 @@ test1: /usr/lib/x86_64-linux-gnu/libcamd.so
 test1: /usr/lib/x86_64-linux-gnu/libccolamd.so
 test1: /usr/lib/x86_64-linux-gnu/libcolamd.so
 test1: /usr/lib/x86_64-linux-gnu/libsuitesparseconfig.so
-test1: /usr/lib/x86_64-linux-gnu/libtbb.so.12.5
 test1: /usr/lib/x86_64-linux-gnu/libcxsparse.so
 test1: /usr/lib/x86_64-linux-gnu/liblapack.so
 test1: /usr/lib/x86_64-linux-gnu/libblas.so
 test1: /usr/lib/x86_64-linux-gnu/libf77blas.so
 test1: /usr/lib/x86_64-linux-gnu/libatlas.so
+test1: /usr/lib/x86_64-linux-gnu/libtbb.so.12.5
 test1: CMakeFiles/test1.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/c/rm_xz_vision26/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable test1"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/test1.dir/link.txt --verbose=$(VERBOSE)

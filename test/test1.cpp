@@ -1,14 +1,25 @@
-#include "function/auto_buff/rune_detector.hpp"
+#include <fmt/core.h>
+
+#include <chrono>
+#include <fstream>
+#include <nlohmann/json.hpp>
+#include <opencv2/opencv.hpp>
+
+#include "/home/c/rm_xz_vision26/function/auto_aim/detector.hpp"
 #include "tools/exiter.hpp"
-#include "/home/c/rm_xz_vision26/ecu/camera.hpp"
+#include "tools/img_tools.hpp"
+#include "tools/logger.hpp"
+#include "tools/math_tool.hpp"
+#include "tools/plotter.hpp"
+#include "ecu/camera.hpp"
+#include "ecu/command.hpp"
 
 using namespace cv;
 using namespace std;
 
-const std::string keys =
-    "{help h usage ? |     | 输出命令行参数说明 }"
-    "{@config-path c | /home/c/rm_xz_vision26/configs/test.yaml | "
-    "yaml配置文件的路径}";
+const std::string keys = "{help h usage ? |     | 输出命令行参数说明 }"
+                         "{@config-path c | /home/c/rm_xz_vision26/configs/how_to_set_params.yaml | "
+                         "yaml配置文件的路径}";
 
 int main(int argc, char* argv[])
 {
@@ -19,44 +30,34 @@ int main(int argc, char* argv[])
   }
   auto config_path = cli.get<std::string>(0);
 
-  //VideoCapture cap("/home/chaichai/project/rm_xz_vision26/assets/example.mp4");
-  ecu::Camera Camera(config_path);//添加的
+  // VideoCapture cap("/home/chaichai/project/rm_xz_vision26/assets/example.mp4");
+  ecu::Camera Camera(config_path); // 添加的
 
-//   if (!cap.isOpened()) {
-//     std::cerr << "无法打开视频文件!" << std::endl;
-//     return -1;
-//   }
+  //   if (!cap.isOpened()) {
+  //     std::cerr << "无法打开视频文件!" << std::endl;
+  //     return -1;
+  //   }
 
-  auto_buff::BuffDetection detector(config_path);
-
-  
+  xz_vision::Detector detector(config_path,true);
 
   while (true) {
     cv::Mat raw_img;
-    //cap >> raw_img;
+    // cap >> raw_img;
 
     // if (raw_img.empty())
     //   break;
 
-
     std::chrono::steady_clock::time_point timestamp;
+
     Camera.read(raw_img, timestamp);
-
+    
     auto t_now = std::chrono::steady_clock::now();
-    auto_buff::Frame frame(raw_img, t_now, 0, 0, 0);
-
-    detector.detect(frame);
-
-    // 按 ESC 退出, 按空格暂停
-    int key = cv::waitKey(30);
-    if (key == 27) // ESC
+    
+    auto armors = detector.detect(raw_img); // 直接调用 detect 方法
+    
+    auto key = cv::waitKey(30);
+    if (key == 'q')
       break;
-    else if (key == 32) { // Space
-      cv::waitKey(0);
-    }
   }
-
-  //cap.release();
-  cv::destroyAllWindows();
   return 0;
 }

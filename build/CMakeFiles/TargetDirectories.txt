@@ -9,6 +9,9 @@
 /home/c/rm_xz_vision26/build/function/auto_buff/CMakeFiles/auto_buff.dir
 /home/c/rm_xz_vision26/build/function/auto_buff/CMakeFiles/edit_cache.dir
 /home/c/rm_xz_vision26/build/function/auto_buff/CMakeFiles/rebuild_cache.dir
+/home/c/rm_xz_vision26/build/function/auto_aim/CMakeFiles/auto_aim.dir
+/home/c/rm_xz_vision26/build/function/auto_aim/CMakeFiles/edit_cache.dir
+/home/c/rm_xz_vision26/build/function/auto_aim/CMakeFiles/rebuild_cache.dir
 /home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir
 /home/c/rm_xz_vision26/build/tools/CMakeFiles/edit_cache.dir
 /home/c/rm_xz_vision26/build/tools/CMakeFiles/rebuild_cache.dir

@@ -92,13 +92,17 @@ exit_test_EXTERNAL_OBJECTS = \
 "/home/c/rm_xz_vision26/build/function/auto_buff/CMakeFiles/auto_buff.dir/rune_detector.cpp.o" \
 "/home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir/exiter.cpp.o" \
 "/home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir/logger.cpp.o" \
-"/home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir/imgs_tool.cpp.o"
+"/home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir/imgs_tool.cpp.o" \
+"/home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir/img_tools.cpp.o" \
+"/home/c/rm_xz_vision26/build/tools/CMakeFiles/tools.dir/plotter.cpp.o"
 
 exit_test: CMakeFiles/exit_test.dir/test/exit_test.cpp.o
 exit_test: function/auto_buff/CMakeFiles/auto_buff.dir/rune_detector.cpp.o
 exit_test: tools/CMakeFiles/tools.dir/exiter.cpp.o
 exit_test: tools/CMakeFiles/tools.dir/logger.cpp.o
 exit_test: tools/CMakeFiles/tools.dir/imgs_tool.cpp.o
+exit_test: tools/CMakeFiles/tools.dir/img_tools.cpp.o
+exit_test: tools/CMakeFiles/tools.dir/plotter.cpp.o
 exit_test: CMakeFiles/exit_test.dir/build.make
 exit_test: /usr/lib/x86_64-linux-gnu/libopencv_stitching.so.4.5.4d
 exit_test: /usr/lib/x86_64-linux-gnu/libopencv_alphamat.so.4.5.4d
@@ -136,6 +140,7 @@ exit_test: /usr/lib/x86_64-linux-gnu/libopencv_wechat_qrcode.so.4.5.4d
 exit_test: /usr/lib/x86_64-linux-gnu/libopencv_xobjdetect.so.4.5.4d
 exit_test: /usr/lib/x86_64-linux-gnu/libopencv_xphoto.so.4.5.4d
 exit_test: ecu/libecu.a
+exit_test: function/auto_aim/libauto_aim.a
 exit_test: /usr/lib/x86_64-linux-gnu/libyaml-cpp.so.0.7.0
 exit_test: /usr/lib/x86_64-linux-gnu/libfmt.so.8.1.1
 exit_test: /home/c/opt/intel/openvino_ubuntu22_2025/runtime/lib/intel64/libopenvino.so.2025.4.0
@@ -171,12 +176,12 @@ exit_test: /usr/lib/x86_64-linux-gnu/libcamd.so
 exit_test: /usr/lib/x86_64-linux-gnu/libccolamd.so
 exit_test: /usr/lib/x86_64-linux-gnu/libcolamd.so
 exit_test: /usr/lib/x86_64-linux-gnu/libsuitesparseconfig.so
-exit_test: /usr/lib/x86_64-linux-gnu/libtbb.so.12.5
 exit_test: /usr/lib/x86_64-linux-gnu/libcxsparse.so
 exit_test: /usr/lib/x86_64-linux-gnu/liblapack.so
 exit_test: /usr/lib/x86_64-linux-gnu/libblas.so
 exit_test: /usr/lib/x86_64-linux-gnu/libf77blas.so
 exit_test: /usr/lib/x86_64-linux-gnu/libatlas.so
+exit_test: /usr/lib/x86_64-linux-gnu/libtbb.so.12.5
 exit_test: CMakeFiles/exit_test.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/c/rm_xz_vision26/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable exit_test"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/exit_test.dir/link.txt --verbose=$(VERBOSE)

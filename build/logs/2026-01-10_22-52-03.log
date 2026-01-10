@@ -1,0 +1,6 @@
+[2026-01-10 22:52:03.173] [warning] Invalid vid_pid: "MV-CS016-10UC"
+[2026-01-10 22:52:03.174] [info] HikRobot's daemon thread started.
+[2026-01-10 22:52:03.405] [info] HikRobot's capture thread started.
+[2026-01-10 22:52:03.706] [info] HikRobot's capture thread stopped.
+[2026-01-10 22:52:03.715] [info] HikRobot's daemon thread stopped.
+[2026-01-10 22:52:03.716] [info] HikRobot destructed.

@@ -154,6 +154,30 @@ exiter.cpp.s:
 	cd /home/c/rm_xz_vision26/build && $(MAKE) $(MAKESILENT) -f tools/CMakeFiles/tools.dir/build.make tools/CMakeFiles/tools.dir/exiter.cpp.s
 .PHONY : exiter.cpp.s
 
+img_tools.o: img_tools.cpp.o
+.PHONY : img_tools.o
+
+# target to build an object file
+img_tools.cpp.o:
+	cd /home/c/rm_xz_vision26/build && $(MAKE) $(MAKESILENT) -f tools/CMakeFiles/tools.dir/build.make tools/CMakeFiles/tools.dir/img_tools.cpp.o
+.PHONY : img_tools.cpp.o
+
+img_tools.i: img_tools.cpp.i
+.PHONY : img_tools.i
+
+# target to preprocess a source file
+img_tools.cpp.i:
+	cd /home/c/rm_xz_vision26/build && $(MAKE) $(MAKESILENT) -f tools/CMakeFiles/tools.dir/build.make tools/CMakeFiles/tools.dir/img_tools.cpp.i
+.PHONY : img_tools.cpp.i
+
+img_tools.s: img_tools.cpp.s
+.PHONY : img_tools.s
+
+# target to generate assembly for a file
+img_tools.cpp.s:
+	cd /home/c/rm_xz_vision26/build && $(MAKE) $(MAKESILENT) -f tools/CMakeFiles/tools.dir/build.make tools/CMakeFiles/tools.dir/img_tools.cpp.s
+.PHONY : img_tools.cpp.s
+
 imgs_tool.o: imgs_tool.cpp.o
 .PHONY : imgs_tool.o
 
@@ -202,6 +226,30 @@ logger.cpp.s:
 	cd /home/c/rm_xz_vision26/build && $(MAKE) $(MAKESILENT) -f tools/CMakeFiles/tools.dir/build.make tools/CMakeFiles/tools.dir/logger.cpp.s
 .PHONY : logger.cpp.s
 
+plotter.o: plotter.cpp.o
+.PHONY : plotter.o
+
+# target to build an object file
+plotter.cpp.o:
+	cd /home/c/rm_xz_vision26/build && $(MAKE) $(MAKESILENT) -f tools/CMakeFiles/tools.dir/build.make tools/CMakeFiles/tools.dir/plotter.cpp.o
+.PHONY : plotter.cpp.o
+
+plotter.i: plotter.cpp.i
+.PHONY : plotter.i
+
+# target to preprocess a source file
+plotter.cpp.i:
+	cd /home/c/rm_xz_vision26/build && $(MAKE) $(MAKESILENT) -f tools/CMakeFiles/tools.dir/build.make tools/CMakeFiles/tools.dir/plotter.cpp.i
+.PHONY : plotter.cpp.i
+
+plotter.s: plotter.cpp.s
+.PHONY : plotter.s
+
+# target to generate assembly for a file
+plotter.cpp.s:
+	cd /home/c/rm_xz_vision26/build && $(MAKE) $(MAKESILENT) -f tools/CMakeFiles/tools.dir/build.make tools/CMakeFiles/tools.dir/plotter.cpp.s
+.PHONY : plotter.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -214,12 +262,18 @@ help:
 	@echo "... exiter.o"
 	@echo "... exiter.i"
 	@echo "... exiter.s"
+	@echo "... img_tools.o"
+	@echo "... img_tools.i"
+	@echo "... img_tools.s"
 	@echo "... imgs_tool.o"
 	@echo "... imgs_tool.i"
 	@echo "... imgs_tool.s"
 	@echo "... logger.o"
 	@echo "... logger.i"
 	@echo "... logger.s"
+	@echo "... plotter.o"
+	@echo "... plotter.i"
+	@echo "... plotter.s"
 .PHONY : help
 
 

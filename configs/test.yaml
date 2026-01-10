@@ -3,7 +3,7 @@
 image_width: 600
 image_height: 600
   # 阈值
-param_thresh: 180
+param_thresh: 160
   # 条件满足时赋予的最大值
 param_maxval: 255
   # 矩形核
@@ -63,8 +63,4 @@ armor_outside_height: 145.045
 armor_inside_width: 352.88
 armor_inside_y: 46.206
 
-camera_name: "hikrobot"
-exposure_ms: 2
-gain: 16
-vid_pid: "MV-CS016-10UC"
 

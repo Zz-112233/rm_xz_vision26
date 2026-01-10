@@ -37,10 +37,13 @@ find_package(Ceres REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR})
-include_directories(/usr/include/libusb-1.0)  # 直接添加libusb头文件路径
+include_directories(/usr/include/libusb-1.0
+                    /home/c/opt/intel/openvino_ubuntu22_2025/runtime/include
+                    )  # 直接添加libusb头文件路径
 
 add_subdirectory(ecu)
 add_subdirectory(function/auto_buff)
+add_subdirectory(function/auto_aim)
 add_subdirectory(tools)
 
 # #################tests##################
@@ -54,6 +57,7 @@ target_link_libraries(auto_buff_test PRIVATE
     auto_buff
     tools
     ecu
+    auto_aim
     yaml-cpp
     fmt::fmt
     openvino::runtime
@@ -67,6 +71,7 @@ target_link_libraries(test1 PRIVATE
     auto_buff
     tools
     ecu
+    auto_aim
     yaml-cpp
     fmt::fmt
     openvino::runtime
@@ -80,6 +85,7 @@ target_link_libraries(exit_test PRIVATE
     auto_buff
     tools
     ecu
+    auto_aim
     yaml-cpp
     fmt::fmt
     openvino::runtime
