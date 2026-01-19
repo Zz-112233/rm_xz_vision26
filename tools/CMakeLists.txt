@@ -6,4 +6,5 @@ add_library(tools OBJECT
     imgs_tool.cpp
     draw_tool.cpp
     plotter.cpp
+    rotary_tool.cpp
 )

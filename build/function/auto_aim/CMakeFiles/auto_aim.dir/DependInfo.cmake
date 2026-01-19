@@ -1,0 +1,24 @@
+
+# Consider dependencies only in project.
+set(CMAKE_DEPENDS_IN_PROJECT_ONLY OFF)
+
+# The set of languages for which implicit dependencies are needed:
+set(CMAKE_DEPENDS_LANGUAGES
+  )
+
+# The set of dependency files which are needed:
+set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/zzy/rm_xz_vision26/function/auto_aim/armor.cpp" "function/auto_aim/CMakeFiles/auto_aim.dir/armor.cpp.o" "gcc" "function/auto_aim/CMakeFiles/auto_aim.dir/armor.cpp.o.d"
+  "/home/zzy/rm_xz_vision26/function/auto_aim/classifier.cpp" "function/auto_aim/CMakeFiles/auto_aim.dir/classifier.cpp.o" "gcc" "function/auto_aim/CMakeFiles/auto_aim.dir/classifier.cpp.o.d"
+  "/home/zzy/rm_xz_vision26/function/auto_aim/detector.cpp" "function/auto_aim/CMakeFiles/auto_aim.dir/detector.cpp.o" "gcc" "function/auto_aim/CMakeFiles/auto_aim.dir/detector.cpp.o.d"
+  "/home/zzy/rm_xz_vision26/function/auto_aim/solver.cpp" "function/auto_aim/CMakeFiles/auto_aim.dir/solver.cpp.o" "gcc" "function/auto_aim/CMakeFiles/auto_aim.dir/solver.cpp.o.d"
+  "/home/zzy/rm_xz_vision26/function/auto_aim/yolo.cpp" "function/auto_aim/CMakeFiles/auto_aim.dir/yolo.cpp.o" "gcc" "function/auto_aim/CMakeFiles/auto_aim.dir/yolo.cpp.o.d"
+  "/home/zzy/rm_xz_vision26/function/auto_aim/yolos/yolov8.cpp" "function/auto_aim/CMakeFiles/auto_aim.dir/yolos/yolov8.cpp.o" "gcc" "function/auto_aim/CMakeFiles/auto_aim.dir/yolos/yolov8.cpp.o.d"
+  )
+
+# Targets to which this target links which contain Fortran sources.
+set(CMAKE_Fortran_TARGET_LINKED_INFO_FILES
+  )
+
+# Fortran module output directory.
+set(CMAKE_Fortran_TARGET_MODULE_DIR "")

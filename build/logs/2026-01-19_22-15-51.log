@@ -1,0 +1,5 @@
+[2026-01-19 22:15:51.203] [info] HikRobot's daemon thread started.
+[2026-01-19 22:15:51.223] [warning] Not found camera!
+[2026-01-19 22:15:51.323] [warning] MV_CC_StopGrabbing failed: 0x80000000
+[2026-01-19 22:15:51.323] [warning] Unable to open usb!
+[2026-01-19 22:15:51.324] [warning] Not found camera!

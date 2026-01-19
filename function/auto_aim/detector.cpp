@@ -1,5 +1,5 @@
 #include "detector.hpp"
-
+#include <filesystem>
 namespace xz_vision
 {
   Detector::Detector(const std::string& config_path, bool debug)
