@@ -6,6 +6,9 @@ add_library(auto_aim STATIC
     detector.cpp
     armor.cpp
     classifier.cpp
+    solver.cpp
+    yolo.cpp
+    yolos/yolov8.cpp
 )
 
 target_include_directories(auto_aim PRIVATE
@@ -20,6 +23,6 @@ target_link_libraries(auto_aim PRIVATE
 )
 
 # 可选：如果需要 OpenCV，添加
-# if(OpenCV_LIBS)
-#     target_link_libraries(auto_aim PRIVATE ${OpenCV_LIBS})
-# endif()
+ if(OpenCV_LIBS)
+    target_link_libraries(auto_aim PRIVATE ${OpenCV_LIBS})
+endif()
