@@ -81,5 +81,9 @@ compansate_time: 75
 compansate_pitch: 0.0
 compansate_yaw: 0.0
 
+#####--------相机转云台坐标系平移向量--------#####
+# 需要通过手眼标定获得该数据
+tvec_c2g: [0.05, -0.02, 0.1]
+
 
 

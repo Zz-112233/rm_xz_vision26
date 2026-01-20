@@ -56,7 +56,7 @@ namespace auto_buff
     std::vector<double> m_direction_data; // 计算旋转方向的数据
 
     std::vector<std::pair<double, double>> m_fit_data; // 拟合数据
-    double m_angleRel;              // 这一帧相对于第一帧的旋转角度（去除了装甲板切换的影响）
+    double m_angle_rel;             // 这一帧相对于第一帧的旋转角度（去除了装甲板切换的影响）
     std::array<double, 5> m_params; // 拟合参数
     std::chrono::steady_clock::time_point m_frame_time; // 当前帧的时间戳
     std::chrono::steady_clock::time_point m_start_time; // 开始的时间戳
@@ -76,8 +76,9 @@ namespace auto_buff
     cv::Mat m_matW2R;      // 世界坐标系转机器人坐标系的 4x4 变换矩阵
     cv::Mat m_rMatW2R;     // 世界坐标系转机器人坐标系的 3x3 旋转矩阵
     cv::Mat m_rMatW2RBase; // 第一次检测有效的世界坐标系转机器人坐标系的 3x3 旋转矩阵
-    double m_angle_rel;    // 这一帧相对于第一帧的旋转角度（去除了装甲板切换的影响）
-    double m_angle_last;   // 上一帧相对于第一帧的旋转角度（不考虑装甲板切换
+
+    double m_angle_rel;  // 这一帧相对于第一帧的旋转角度（去除了装甲板切换的影响）
+    double m_angle_last; // 上一帧相对于第一帧的旋转角度（不考虑装甲板切换
     double m_distance2target;
 
     cv::Point3f m_armor_robot;  // 装甲板中心的机器人坐标
@@ -98,8 +99,9 @@ namespace auto_buff
     inline static cv::Mat intrinsic_matrix;
     inline static cv::Mat dist_coeffs;
 
-    inline static std::array<double, 3> camera2gimbal_translation;
-    inline static const std::array<double, 3> camera2gimbal_rotation{0.0, 0.0, 0.0};
+    inline static std::array<double, 3> camera2gimbal_translation_vector; // 平移向量
+    inline static const std::array<double, 3> camera2gimbal_rotation_vector{0.0, 0.0,
+                                                                            0.0}; // 旋转向量
 
     inline static const double min_distance_to_target{4};
     inline static const double max_distance_to_target{10};

@@ -28,6 +28,21 @@ namespace auto_buff
     compansate_time = yaml["compansate_time"].as<double>();
     compansate_pitch = yaml["compansate_pitch"].as<double>();
     compansate_yaw = yaml["compansate_yaw"].as<double>();
+
+    if (yaml["tvec_c2g"]) {
+      const YAML::Node& node = yaml["tvec_c2g"];
+      if (node.IsSequence()) {
+        camera2gimbal_translation_vector = node.as<std::array<double, 3>>();
+        // 可选：检查长度是否为3
+        if (camera2gimbal_translation_vector.size() != 3) {
+          std::cerr << "Warning: tvec_c2g should have 3 elements!" << std::endl;
+        }
+      } else {
+        throw std::runtime_error("tvec_c2g is not a sequence!");
+      }
+    } else {
+      throw std::runtime_error("Missing tvec_c2g in YAML!");
+    }
   }
 
   BuffSolver::~BuffSolver()
@@ -61,12 +76,63 @@ namespace auto_buff
     m_angle_last = 0.0;
 
     // ================= 方向判断阈值 =================
-    const int interval_ms = 1000 / FPS;
+    const int interval_ms = 1000 / FPS; // 最多缓存 20 秒的历史数据用于拟合
     m_direction_thresh = std::max(100 / interval_ms, 2);
 
     // ================= 拟合数据 & 线程 =================
     m_fit_data.reserve(FPS * 20);
     m_fit_thread = std::thread(&BuffSolver::fit, this);
+  }
+
+  /**
+   * @brief 拟合线程的主函数
+   */
+  void BuffSolver::fit()
+  {
+    if (BuffDetection::MODE != Mode::BIG) {
+      return;
+    }
+
+    decltype(m_fit_data) fitData;
+    while (STOP_THREAD.load() == false) {
+      {
+        std::shared_lock lock(m_mutex);
+        fitData = m_fit_data;
+      }
+      // 数据量过少时，直接返回
+      if (m_fit_data.size() < (size_t)min_fit_data_size) {
+        continue;
+      }
+      bool result = fit_once();
+      VALID_PARAMS.store(result);
+#if CONSOLE_OUTPUT >= 1
+      MUTEX.lock();
+      if (result == true) {
+        std::cout << "params: ";
+        std::for_each(m_params.begin(), m_params.end(), [](auto&& it) { std::cout << it << " "; });
+        std::cout << std::endl;
+      }
+      MUTEX.unlock();
+#endif
+      if (m_fit_data.size() > (size_t)max_fit_data_size) {
+        m_fit_data.erase(m_fit_data.begin(), m_fit_data.begin() + m_fit_data.size() / 2);
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(int(1e4 / FPS)));
+    }
+  }
+
+  /**
+   * @brief 拟合一次
+   */
+  bool BuffSolver::fit_once()
+  {
+    // 如果数据量过少，则确定凹凸性
+    if (m_fit_data.size() < (size_t)2 * min_fit_data_size) {
+      m_convexity = get_convexity(m_fit_data);
+    }
+    // 利用 ransac 算法计算参数
+    m_params = ransac_fitting(m_fit_data, m_convexity);
+    return true;
   }
 
   /**
@@ -126,82 +192,6 @@ namespace auto_buff
       std::unique_lock lock(m_mutex);
       m_fit_data.emplace_back(time, std::abs(m_angle_rel));
     }
-  }
-
-  /**
-   * @brief 拟合线程的主函数
-   */
-  void BuffSolver::fit()
-  {
-    if (BuffDetection::MODE != Mode::BIG) {
-      return;
-    }
-
-    decltype(m_fit_data) fitData;
-    while (STOP_THREAD.load() == false) {
-      {
-        std::shared_lock lock(m_mutex);
-        fitData = m_fit_data;
-      }
-      // 数据量过少时，直接返回
-      if (m_fit_data.size() < (size_t)min_fit_data_size) {
-        continue;
-      }
-      bool result = fit_once();
-      VALID_PARAMS.store(result);
-#if CONSOLE_OUTPUT >= 1
-      MUTEX.lock();
-      if (result == true) {
-        std::cout << "params: ";
-        std::for_each(m_params.begin(), m_params.end(), [](auto&& it) { std::cout << it << " "; });
-        std::cout << std::endl;
-      }
-      MUTEX.unlock();
-#endif
-      if (m_fit_data.size() > (size_t)max_fit_data_size) {
-        m_fit_data.erase(m_fit_data.begin(), m_fit_data.begin() + m_fit_data.size() / 2);
-      }
-      std::this_thread::sleep_for(std::chrono::milliseconds(int(1e4 / FPS)));
-    }
-  }
-
-  /**
-   * @brief 拟合一次
-   */
-  bool BuffSolver::fit_once()
-  {
-    // 如果数据量过少，则确定凹凸性
-    if (m_fit_data.size() < (size_t)2 * min_fit_data_size) {
-      m_convexity = get_convexity(m_fit_data);
-    }
-    // 利用 ransac 算法计算参数
-    m_params = ransac_fitting(m_fit_data, m_convexity);
-    return true;
-  }
-
-  /**
-   * @brief 凹凸性计算
-   * @param[in] data          角度数据
-   * @return Convexity
-   */
-  Convexity get_convexity(const std::vector<std::pair<double, double>>& data)
-  {
-    auto first{data.begin()}, last{data.end() - 1};
-    double slope{(last->second - first->second) / (last->first - first->first)};
-    double offset{(first->second * last->first - last->second * first->first) /
-                  (last->first - first->first)};
-    int concave{0}, convex{0};
-    for (const auto& i : data) {
-      if (slope * i.first + offset > i.second) {
-        concave++;
-      } else {
-        convex++;
-      }
-    }
-    const int standard{static_cast<int>(data.size() * 0.75)};
-    return concave > standard  ? Convexity::CONCAVE
-           : convex > standard ? Convexity::CONVEX
-                               : Convexity::UNKNOWN;
   }
 
   /**
@@ -267,6 +257,282 @@ namespace auto_buff
   }
 
   /**
+   * @brief 预处理，更新时间戳并设置弹速
+   */
+  void BuffSolver::preprocess(const Frame& frame, std::vector<cv::Point2f>& cameraPoints)
+  {
+    m_camera_points = cameraPoints;
+    m_frame_time = frame.m_time;
+    m_receive_roll = frame.m_roll;
+    m_receive_pitch = frame.m_pitch;
+    m_receive_yaw = frame.m_yaw;
+    m_bullet_speed =
+        current_bullet_speed > min_bullet_speed ? current_bullet_speed : default_bullet_speed;
+  }
+
+  /**
+   * @brief
+   * 矩阵解算，分别进行世界坐标系到相机坐标系，相机坐标系到云台坐标系，云台坐标系到机器人坐标系的转换，与旋转矩阵的设置
+   */
+  bool BuffSolver::matrix_cal()
+  {
+    // 进行坐标变换并设置旋转矩阵
+    m_matW2C = world2Camera(m_world_points, m_camera_points, intrinsic_matrix, dist_coeffs);
+    m_matC2G = camera2Gimbal(camera2gimbal_rotation_vector, camera2gimbal_translation_vector);
+    m_matG2R =
+        gimbal2Robot(tools::angle2Radian(m_receive_pitch), tools::angle2Radian(m_receive_yaw));
+    m_matW2R = m_matG2R * m_matC2G * m_matW2C;
+
+    m_rMatW2R = m_matW2R(cv::Rect(0, 0, 3, 3));
+    m_distance2target = cv::norm(m_matW2C.col(3)) * 1e-3;
+
+    if (tools::inRange<double>(m_distance2target, min_distance_to_target, max_distance_to_target) ==
+        false) {
+      return false;
+    }
+    // 记录装甲板和中心 R 的机器人坐标
+    cv::Mat armorWorld = (cv::Mat_<double>(4, 1) << 0, 0, 0, 1);
+    cv::Mat centerWorld = (cv::Mat_<double>(4, 1) << 0, BuffDetection::power_rune_radius, 0, 1);
+    cv::Mat armorRobot{m_matW2R * armorWorld};
+    cv::Mat centerCamera{m_matW2C * centerWorld};
+    cv::Mat centerRobot{m_matW2R * centerWorld};
+    m_armor_robot = {(float)(armorRobot.at<double>(0, 0)), (float)(armorRobot.at<double>(1, 0)),
+                     (float)(armorRobot.at<double>(2, 0))};
+    m_center_robot = {(float)(centerRobot.at<double>(0, 0)), (float)(centerRobot.at<double>(1, 0)),
+                      (float)(centerRobot.at<double>(2, 0))};
+#if CONSOLE_OUTPUT >= 2
+    MUTEX.lock();
+    std::cout << "armor center coordinate: " << m_armor_robot << std::endl;
+    std::cout << "center R coordinate: " << m_center_robot << std::endl;
+    MUTEX.unlock();
+#endif
+    return true;
+  }
+
+  /**
+   * @brief 预测
+   */
+  bool BuffSolver::predict()
+  {
+    double angle;
+    if (m_direction == Direction::STABLE) {
+      angle = 0.0;
+    } else {
+      if (BuffDetection::MODE == Mode::BIG) {
+        auto frameTime{
+            std::chrono::duration_cast<std::chrono::milliseconds>(m_frame_time - m_start_time)
+                .count()};
+        if (VALID_PARAMS.load() == false) {
+          return false;
+        }
+        angle = tools::get_rotation_angle_big(m_distance2target, m_bullet_speed, m_params,
+                                              BuffSolver::compansate_time, frameTime);
+      } else {
+        angle = tools::get_rotation_angle_small(m_distance2target, m_bullet_speed,
+                                                BuffSolver::small_power_rune_rotation_speed,
+                                                BuffSolver::compansate_time);
+      }
+      if (m_direction == Direction::ANTI_CLOCKWISE) {
+        angle = -angle;
+      }
+    }
+    cv::Mat matrixWorld =
+        (cv::Mat_<double>(4, 1) << BuffDetection::power_rune_radius * std::sin(angle),
+         BuffDetection::power_rune_radius - BuffDetection::power_rune_radius * std::cos(angle), 0.0,
+         1.0);
+    cv::Mat matrixRobot{m_matW2R * matrixWorld};
+    m_predict_robot = {(float)(matrixRobot.at<double>(0, 0)), (float)(matrixRobot.at<double>(1, 0)),
+                       (float)(matrixRobot.at<double>(2, 0))};
+    auto [predictPitch, predictYaw] = getPitchYawFromRobotCoor(m_predict_robot, m_bullet_speed);
+    m_predict_pitch = predictPitch;
+    m_predict_yaw = predictYaw;
+    m_predict_pixel = getPixelFromRobot(m_predict_robot, m_matW2C, m_matW2R);
+#if CONSOLE_OUTPUT >= 2
+    MUTEX.lock();
+    std::cout << "predict angle: " << angle << std::endl;
+    std::cout << "predict coordinate: " << m_predict_robot << std::endl;
+    std::cout << "predict pitch and yaw: " << m_predict_pitch << ", " << m_predict_yaw << std::endl;
+    MUTEX.unlock();
+#endif
+    return true;
+  }
+
+  /**
+   * @brief 世界坐标系转相机坐标系
+   * @param[in] worldPoints   世界坐标系坐标
+   * @param[in] cameraPoints  相机坐标系坐标
+   * @return cv::Mat
+   */
+  cv::Mat world2Camera(const std::vector<cv::Point3f>& worldPoints,
+                       const std::vector<cv::Point2f>& cameraPoints, const cv::Mat& intrinsicMatrix,
+                       const cv::Mat& distCoeffs)
+  {
+    cv::Mat rVec, tVec, rMat;
+    cv::solvePnP(worldPoints, cameraPoints, intrinsicMatrix, distCoeffs, rVec, tVec, false,
+                 cv::SOLVEPNP_ITERATIVE);
+    cv::Rodrigues(rVec, rMat);
+    cv::Mat w2c{cv::Mat::zeros(cv::Size(4, 4), CV_64FC1)};
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j) {
+        w2c.at<double>(i, j) = rMat.at<double>(i, j);
+      }
+    }
+    for (int i = 0; i < 3; ++i) {
+      w2c.at<double>(i, 3) = tVec.at<double>(i, 0);
+    }
+    w2c.at<double>(3, 3) = 1.0;
+    return w2c;
+  }
+
+  /**
+   * @brief 相机坐标系转云台坐标系
+   * @param[in] r             旋转参数
+   * @param[in] t             平移参数
+   * @return cv::Mat
+   */
+  cv::Mat camera2Gimbal(const std::array<double, 3>& r, const std::array<double, 3>& t)
+  {
+    cv::Mat rVec = (cv::Mat_<double>(3, 1) << r[0], r[1], r[2]);
+    cv::Mat tVec = (cv::Mat_<double>(3, 1) << t[0], t[1], t[2]);
+    cv::Mat rMat;
+    cv::Rodrigues(rVec, rMat);
+
+    cv::Mat c2g{cv::Mat::zeros(cv::Size(4, 4), CV_64FC1)};
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j) {
+        c2g.at<double>(i, j) = rMat.at<double>(i, j);
+      }
+    }
+    for (int i = 0; i < 3; ++i) {
+      c2g.at<double>(i, 3) = tVec.at<double>(i, 0);
+    }
+    c2g.at<double>(3, 3) = 1;
+
+    return c2g;
+  }
+
+  /**
+   * @brief 云台坐标系转机器人坐标系
+   * @param[in] pitch
+   * @param[in] yaw
+   * @return cv::Mat
+   */
+  cv::Mat gimbal2Robot(double pitch, double yaw, double roll = 0)
+  {
+    cv::Mat matY = (cv::Mat_<double>(4, 4) << std::cos(-yaw), 0, std::sin(-yaw), 0, 0, 1, 0, 0,
+                    -std::sin(-yaw), 0, std::cos(-yaw), 0, 0, 0, 0, 1);
+    cv::Mat matX = (cv::Mat_<double>(4, 4) << 1, 0, 0, 0, 0, std::cos(pitch), -std::sin(pitch), 0,
+                    0, std::sin(pitch), std::cos(pitch), 0, 0, 0, 0, 1);
+    // cv::Mat matZ = (cv::Mat_<double>(4, 4) << std::cos(roll), -std::sin(roll), 0, 0,
+    // std::sin(roll), std::cos(roll), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+    // 实际测试中，roll 不起作用，这可能和电控对欧拉角的解算有关
+    return matY * matX;
+  }
+
+  /**
+   * @brief 旋转方向解算
+   */
+  void BuffSolver::directionCal()
+  {
+    if (m_direction == Direction::UNKNOWN || m_direction == Direction::STABLE) {
+      m_direction_data.push_back(m_angle_rel);
+      if ((int)m_direction_data.size() >= m_direction_thresh) {
+        // 计算角度差并投票
+        int stable = 0, anti = 0, clockwise = 0;
+        for (size_t i = 0; i < m_direction_data.size() / 2; ++i) {
+          auto temp{m_direction_data.at(i + m_direction_data.size() / 2) - m_direction_data.at(i)};
+          if (temp > +1.5e-2) {
+            clockwise++;
+          } else if (temp < -1.5e-2) {
+            anti++;
+          } else {
+            stable++;
+          }
+        }
+        // 得票数最多的为对应旋转方向
+        if (int temp{std::max({stable, clockwise, anti})}; temp == clockwise) {
+          m_direction = Direction::CLOCKWISE;
+        } else if (temp == anti) {
+          m_direction = Direction::ANTI_CLOCKWISE;
+        } else {
+          m_direction = Direction::STABLE;
+        }
+      }
+    }
+#if CONSOLE_OUTPUT >= 2
+    MUTEX.lock();
+    std::cout << "direction: "
+              << (m_direction == Direction::CLOCKWISE        ? "clockwise"
+                  : m_direction == Direction::ANTI_CLOCKWISE ? "anti-clockwise"
+                  : m_direction == Direction::STABLE         ? "stable"
+                                                             : "unknown")
+              << std::endl;
+    MUTEX.unlock();
+#endif
+  }
+
+  cv::Point2f BuffSolver::getPixelFromCamera(const cv::Mat& intrinsicMatrix,
+                                             const cv::Mat& cameraPoint)
+  {
+    double fx = intrinsicMatrix.at<double>(0, 0);
+    double fy = intrinsicMatrix.at<double>(1, 1);
+    double cx = intrinsicMatrix.at<double>(0, 2);
+    double cy = intrinsicMatrix.at<double>(1, 2);
+    double X = cameraPoint.at<double>(0, 0);
+    double Y = cameraPoint.at<double>(1, 0);
+    double Z = cameraPoint.at<double>(2, 0);
+    double u = (fx * X + cx * Z) / Z;
+    double v = (fy * Y + cy * Z) / Z;
+    return cv::Point2f(u, v);
+  }
+
+  cv::Point2f BuffSolver::getPixelFromRobot(const cv::Point3f& robot, const cv::Mat& w2c,
+                                            const cv::Mat& w2r)
+  {
+    cv::Mat matrixRobotPoint = (cv::Mat_<double>(4, 1) << robot.x, robot.y, robot.z, 1.0);
+    cv::Mat matrixCameraPoint{w2c * (w2r.inv() * matrixRobotPoint)};
+    return getPixelFromCamera(BuffSolver::intrinsic_matrix, matrixCameraPoint);
+  }
+
+  std::pair<double, double> BuffSolver::getPitchYawFromRobotCoor(const cv::Point3f& target,
+                                                                 double bulletSpeed)
+  {
+    double horizontal{tools::p2p_distance({0.0, 0.0}, {target.x, target.z}) * 1e-3};
+    double a{-0.5 * BuffSolver::gravity * std::pow(horizontal, 2) / std::pow(bulletSpeed, 2)};
+    double b{horizontal};
+    double c{a + target.y * 1e-3};
+    double result{tools::solveQuadraticEquation(a, b, c).second};
+    double pitch{tools::radian2Angle(std::atan(result)) + BuffSolver::compansate_pitch};
+    double yaw{tools::radian2Angle(-std::atan2(target.x, target.z)) + BuffSolver::compansate_yaw};
+    return std::make_pair(pitch, yaw);
+  }
+
+  /**
+   * @brief 凹凸性计算
+   * @param[in] data          角度数据
+   * @return Convexity
+   */
+  Convexity get_convexity(const std::vector<std::pair<double, double>>& data)
+  {
+    auto first{data.begin()}, last{data.end() - 1};
+    double slope{(last->second - first->second) / (last->first - first->first)};
+    double offset{(first->second * last->first - last->second * first->first) /
+                  (last->first - first->first)};
+    int concave{0}, convex{0};
+    for (const auto& i : data) {
+      if (slope * i.first + offset > i.second) {
+        concave++;
+      } else {
+        convex++;
+      }
+    }
+    const int standard{static_cast<int>(data.size() * 0.75)};
+    return concave > standard  ? Convexity::CONCAVE
+           : convex > standard ? Convexity::CONVEX
+                               : Convexity::UNKNOWN;
+  }
+
+  /**
    * @brief 最小二乘拟合，返回参数列表
    * @param[in] points        数据点
    * @param[in] params        初始参数
@@ -320,254 +586,6 @@ namespace auto_buff
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
     return ret;
-  }
-
-  /**
-   * @brief 预处理，更新时间戳并设置弹速
-   */
-  void BuffSolver::preprocess(const Frame& frame, std::vector<cv::Point2f>& cameraPoints)
-  {
-    m_camera_points = cameraPoints;
-    m_frame_time = frame.m_time;
-    m_receive_roll = frame.m_roll;
-    m_receive_pitch = frame.m_pitch;
-    m_receive_yaw = frame.m_yaw;
-    m_bullet_speed =
-        current_bullet_speed > min_bullet_speed ? current_bullet_speed : default_bullet_speed;
-  }
-
-  /**
-   * @brief
-   * 矩阵解算，分别进行世界坐标系到相机坐标系，相机坐标系到云台坐标系，云台坐标系到机器人坐标系的转换，与旋转矩阵的设置
-   */
-  bool BuffSolver::matrix_cal()
-  {
-    // 进行坐标变换并设置旋转矩阵
-    m_matW2C = world2Camera(m_world_points, m_camera_points, intrinsic_matrix, dist_coeffs);
-    m_matC2G = camera2Gimbal(camera2gimbal_translation, camera2gimbal_rotation);
-    m_matG2R =
-        gimbal2Robot(tools::angle2Radian(m_receive_pitch), tools::angle2Radian(m_receive_yaw),
-                     tools::angle2Radian(m_receive_roll));
-    m_matW2R = m_matG2R * m_matC2G * m_matW2C;
-    m_rMatW2R = m_matW2R(cv::Rect(0, 0, 3, 3));
-    m_distance2target = cv::norm(m_matW2C.col(3)) * 1e-3;
-    if (tools::inRange<double>(m_distance2target, min_distance_to_target, max_distance_to_target) ==
-        false) {
-      return false;
-    }
-    // 记录装甲板和中心 R 的机器人坐标
-    cv::Mat armorWorld = (cv::Mat_<double>(4, 1) << 0, 0, 0, 1);
-    cv::Mat centerWorld = (cv::Mat_<double>(4, 1) << 0, BuffDetection::power_rune_radius, 0, 1);
-    cv::Mat armorRobot{m_matW2R * armorWorld};
-    cv::Mat centerCamera{m_matW2C * centerWorld};
-    cv::Mat centerRobot{m_matW2R * centerWorld};
-    m_armor_robot = {(float)(armorRobot.at<double>(0, 0)), (float)(armorRobot.at<double>(1, 0)),
-                     (float)(armorRobot.at<double>(2, 0))};
-    m_center_robot = {(float)(centerRobot.at<double>(0, 0)), (float)(centerRobot.at<double>(1, 0)),
-                      (float)(centerRobot.at<double>(2, 0))};
-#if CONSOLE_OUTPUT >= 2
-    MUTEX.lock();
-    std::cout << "armor center coordinate: " << m_armor_robot << std::endl;
-    std::cout << "center R coordinate: " << m_center_robot << std::endl;
-    MUTEX.unlock();
-#endif
-    return true;
-  }
-
-  /**
-   * @brief 世界坐标系转相机坐标系
-   * @param[in] worldPoints   世界坐标系坐标
-   * @param[in] cameraPoints  相机坐标系坐标
-   * @return cv::Mat
-   */
-  cv::Mat world2Camera(const std::vector<cv::Point3f>& worldPoints,
-                       const std::vector<cv::Point2f>& cameraPoints, const cv::Mat& intrinsicMatrix,
-                       const cv::Mat& distCoeffs)
-  {
-    cv::Mat rVec, tVec, rMat;
-    cv::solvePnP(worldPoints, cameraPoints, intrinsicMatrix, distCoeffs, rVec, tVec, false,
-                 cv::SOLVEPNP_ITERATIVE);
-    cv::Rodrigues(rVec, rMat);
-    cv::Mat w2c{cv::Mat::zeros(cv::Size(4, 4), CV_64FC1)};
-    for (int i = 0; i < 3; ++i) {
-      for (int j = 0; j < 3; ++j) {
-        w2c.at<double>(i, j) = rMat.at<double>(i, j);
-      }
-    }
-    for (int i = 0; i < 3; ++i) {
-      w2c.at<double>(i, 3) = tVec.at<double>(i, 0);
-    }
-    w2c.at<double>(3, 3) = 1.0;
-    return w2c;
-  }
-
-  /**
-   * @brief 相机坐标系转云台坐标系
-   * @param[in] r             旋转参数
-   * @param[in] t             平移参数
-   * @return cv::Mat
-   */
-  cv::Mat camera2Gimbal(const std::array<double, 3>& r, const std::array<double, 3>& t)
-  {
-    cv::Mat rVec = (cv::Mat_<double>(3, 1) << r[0], r[1], r[2]);
-    cv::Mat tVec = (cv::Mat_<double>(3, 1) << t[0], t[1], t[2]);
-    cv::Mat rMat;
-    cv::Rodrigues(rVec, rMat);
-    cv::Mat c2g{cv::Mat::zeros(cv::Size(4, 4), CV_64FC1)};
-    for (int i = 0; i < 3; ++i) {
-      for (int j = 0; j < 3; ++j) {
-        c2g.at<double>(i, j) = rMat.at<double>(i, j);
-      }
-    }
-    for (int i = 0; i < 3; ++i) {
-      c2g.at<double>(i, 3) = tVec.at<double>(i, 0);
-    }
-    c2g.at<double>(3, 3) = 1;
-    return c2g;
-  }
-
-  /**
-   * @brief 云台坐标系转机器人坐标系
-   * @param[in] pitch
-   * @param[in] yaw
-   * @return cv::Mat
-   */
-  cv::Mat gimbal2Robot(double pitch, double yaw, double roll)
-  {
-    cv::Mat matY = (cv::Mat_<double>(4, 4) << std::cos(-yaw), 0, std::sin(-yaw), 0, 0, 1, 0, 0,
-                    -std::sin(-yaw), 0, std::cos(-yaw), 0, 0, 0, 0, 1);
-    cv::Mat matX = (cv::Mat_<double>(4, 4) << 1, 0, 0, 0, 0, std::cos(pitch), -std::sin(pitch), 0,
-                    0, std::sin(pitch), std::cos(pitch), 0, 0, 0, 0, 1);
-    cv::Mat matZ = (cv::Mat_<double>(4, 4) << std::cos(roll), -std::sin(roll), 0, 0, std::sin(roll),
-                    std::cos(roll), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-    // 实际测试中，roll 不起作用，这可能和电控对欧拉角的解算有关
-    return matY * matX;
-  }
-
-  /**
-   * @brief 旋转方向解算
-   */
-  void BuffSolver::directionCal()
-  {
-    if (m_direction == Direction::UNKNOWN || m_direction == Direction::STABLE) {
-      m_direction_data.push_back(m_angleRel);
-      if ((int)m_direction_data.size() >= m_direction_thresh) {
-        // 计算角度差并投票
-        int stable = 0, anti = 0, clockwise = 0;
-        for (size_t i = 0; i < m_direction_data.size() / 2; ++i) {
-          auto temp{m_direction_data.at(i + m_direction_data.size() / 2) - m_direction_data.at(i)};
-          if (temp > +1.5e-2) {
-            clockwise++;
-          } else if (temp < -1.5e-2) {
-            anti++;
-          } else {
-            stable++;
-          }
-        }
-        // 得票数最多的为对应旋转方向
-        if (int temp{std::max({stable, clockwise, anti})}; temp == clockwise) {
-          m_direction = Direction::CLOCKWISE;
-        } else if (temp == anti) {
-          m_direction = Direction::ANTI_CLOCKWISE;
-        } else {
-          m_direction = Direction::STABLE;
-        }
-      }
-    }
-#if CONSOLE_OUTPUT >= 2
-    MUTEX.lock();
-    std::cout << "direction: "
-              << (m_direction == Direction::CLOCKWISE        ? "clockwise"
-                  : m_direction == Direction::ANTI_CLOCKWISE ? "anti-clockwise"
-                  : m_direction == Direction::STABLE         ? "stable"
-                                                             : "unknown")
-              << std::endl;
-    MUTEX.unlock();
-#endif
-  }
-
-  /**
-   * @brief 预测
-   */
-  bool BuffSolver::predict()
-  {
-    double angle;
-    if (m_direction == Direction::STABLE) {
-      angle = 0.0;
-    } else {
-      if (BuffDetection::MODE == Mode::BIG) {
-        auto frameTime{
-            std::chrono::duration_cast<std::chrono::milliseconds>(m_frame_time - m_start_time)
-                .count()};
-        if (VALID_PARAMS.load() == false) {
-          return false;
-        }
-        angle = tools::get_rotation_angle_big(m_distance2target, m_bullet_speed, m_params,
-                                              BuffSolver::compansate_time, frameTime);
-      } else {
-        angle = tools::get_rotation_angle_small(m_distance2target, m_bullet_speed,
-                                                BuffSolver::small_power_rune_rotation_speed,
-                                                BuffSolver::compansate_time);
-      }
-      if (m_direction == Direction::ANTI_CLOCKWISE) {
-        angle = -angle;
-      }
-    }
-    cv::Mat matrixWorld =
-        (cv::Mat_<double>(4, 1) << BuffDetection::power_rune_radius * std::sin(angle),
-         BuffDetection::power_rune_radius - BuffDetection::power_rune_radius * std::cos(angle), 0.0,
-         1.0);
-    cv::Mat matrixRobot{m_matW2R * matrixWorld};
-    m_predict_robot = {(float)(matrixRobot.at<double>(0, 0)), (float)(matrixRobot.at<double>(1, 0)),
-                       (float)(matrixRobot.at<double>(2, 0))};
-    auto [predictPitch, predictYaw] = getPitchYawFromRobotCoor(m_predict_robot, m_bullet_speed);
-    m_predict_pitch = predictPitch;
-    m_predict_yaw = predictYaw;
-    m_predict_pixel = getPixelFromRobot(m_predict_robot, m_matW2C, m_matW2R);
-#if CONSOLE_OUTPUT >= 2
-    MUTEX.lock();
-    std::cout << "predict angle: " << angle << std::endl;
-    std::cout << "predict coordinate: " << m_predict_robot << std::endl;
-    std::cout << "predict pitch and yaw: " << m_predict_pitch << ", " << m_predict_yaw << std::endl;
-    MUTEX.unlock();
-#endif
-    return true;
-  }
-
-  cv::Point2f BuffSolver::getPixelFromCamera(const cv::Mat& intrinsicMatrix,
-                                             const cv::Mat& cameraPoint)
-  {
-    double fx = intrinsicMatrix.at<double>(0, 0);
-    double fy = intrinsicMatrix.at<double>(1, 1);
-    double cx = intrinsicMatrix.at<double>(0, 2);
-    double cy = intrinsicMatrix.at<double>(1, 2);
-    double X = cameraPoint.at<double>(0, 0);
-    double Y = cameraPoint.at<double>(1, 0);
-    double Z = cameraPoint.at<double>(2, 0);
-    double u = (fx * X + cx * Z) / Z;
-    double v = (fy * Y + cy * Z) / Z;
-    return cv::Point2f(u, v);
-  }
-
-  cv::Point2f BuffSolver::getPixelFromRobot(const cv::Point3f& robot, const cv::Mat& w2c,
-                                            const cv::Mat& w2r)
-  {
-    cv::Mat matrixRobotPoint = (cv::Mat_<double>(4, 1) << robot.x, robot.y, robot.z, 1.0);
-    cv::Mat matrixCameraPoint{w2c * (w2r.inv() * matrixRobotPoint)};
-    return getPixelFromCamera(BuffSolver::intrinsic_matrix, matrixCameraPoint);
-  }
-
-  std::pair<double, double> BuffSolver::getPitchYawFromRobotCoor(const cv::Point3f& target,
-                                                                 double bulletSpeed)
-  {
-    double horizontal{tools::p2p_distance({0.0, 0.0}, {target.x, target.z}) * 1e-3};
-    double a{-0.5 * BuffSolver::gravity * std::pow(horizontal, 2) / std::pow(bulletSpeed, 2)};
-    double b{horizontal};
-    double c{a + target.y * 1e-3};
-    double result{tools::solveQuadraticEquation(a, b, c).second};
-    double pitch{tools::radian2Angle(std::atan(result)) + BuffSolver::compansate_pitch};
-    double yaw{tools::radian2Angle(-std::atan2(target.x, target.z)) + BuffSolver::compansate_yaw};
-    return std::make_pair(pitch, yaw);
   }
 
 } // namespace auto_buff
