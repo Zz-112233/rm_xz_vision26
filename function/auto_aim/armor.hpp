@@ -124,29 +124,27 @@ namespace xz_vision
     bool duplicated;         // 是否重复识别
     cv::Rect box;
     Armor(const Lightbar& left, const Lightbar& right); // 传统视觉构造函数
-      double ComputeRectangularError(const Lightbar& left, const Lightbar& right);
-    Armor(
-      int class_id, float confidence, const cv::Rect & box, std::vector<cv::Point2f> armor_keypoints);
-    Armor(
-      int class_id, float confidence, const cv::Rect & box, std::vector<cv::Point2f> armor_keypoints,
-    cv::Point2f offset);
-    Armor(
-      int color_id, int num_id, float confidence, const cv::Rect & box,
-    std::vector<cv::Point2f> armor_keypoints);
-    Armor(
-      int color_id, int num_id, float confidence, const cv::Rect & box,
-    std::vector<cv::Point2f> armor_keypoints, cv::Point2f offset);
+    double ComputeRectangularError(const Lightbar& left, const Lightbar& right);
+    Armor(int class_id, float confidence, const cv::Rect& box,
+          std::vector<cv::Point2f> armor_keypoints);
+    Armor(int class_id, float confidence, const cv::Rect& box,
+          std::vector<cv::Point2f> armor_keypoints, cv::Point2f offset);
+    Armor(int color_id, int num_id, float confidence, const cv::Rect& box,
+          std::vector<cv::Point2f> armor_keypoints);
+    Armor(int color_id, int num_id, float confidence, const cv::Rect& box,
+          std::vector<cv::Point2f> armor_keypoints, cv::Point2f offset);
+
     // 神经网络构造函数
-    Eigen::Vector3d xyz_in_camera;      // 在相机坐标系下的位置
-    Eigen::Vector3d xyz_in_gimbal;      // 在云台坐标系下的位置
-    Eigen::Vector3d xyz_in_world;       // 在世界坐标系下的位置
-  
+    Eigen::Vector3d xyz_in_camera; // 在相机坐标系下的位置
+    Eigen::Vector3d xyz_in_gimbal; // 在云台坐标系下的位置
+    Eigen::Vector3d xyz_in_world;  // 在世界坐标系下的位置
+
     // 姿态信息（单位：弧度）
-    Eigen::Vector3d ypr_in_gimbal;      // 在云台坐标系下的偏航(yaw)、俯仰(pitch)、滚转(roll)
-    Eigen::Vector3d ypr_in_world;       // 在世界坐标系下的欧拉角
-    Eigen::Vector3d ypd_in_world;       // 在世界坐标系下的偏航(yaw)、俯仰(pitch)、距离(distance)
-  
+    Eigen::Vector3d ypr_in_gimbal; // 在云台坐标系下的偏航(yaw)、俯仰(pitch)、滚转(roll)
+    Eigen::Vector3d ypr_in_world;  // 在世界坐标系下的欧拉角
+    Eigen::Vector3d ypd_in_world;  // 在世界坐标系下的偏航(yaw)、俯仰(pitch)、距离(distance)
+
     // 用于优化的原始数据
-    double yaw_raw = 0.0;  
+    double yaw_raw = 0.0;
   };
 } // namespace xz_vision

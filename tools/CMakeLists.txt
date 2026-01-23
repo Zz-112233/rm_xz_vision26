@@ -7,4 +7,5 @@ add_library(tools OBJECT
     draw_tool.cpp
     plotter.cpp
     rotary_tool.cpp
+    extended_kalman_filter.cpp
 )

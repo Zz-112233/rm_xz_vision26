@@ -1,9 +1,9 @@
 #include <fmt/core.h>
-
 #include <chrono>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <opencv2/opencv.hpp>
+#include <iomanip>
 
 #include "function/auto_aim/detector.hpp"
 #include "tools/exiter.hpp"
@@ -31,32 +31,52 @@ int main(int argc, char* argv[])
   }
   auto config_path = cli.get<std::string>(0);
 
-  // VideoCapture cap("/home/chaichai/project/rm_xz_vision26/assets/example.mp4");
-  ecu::Camera Camera(config_path); // 添加的
-
-  //   if (!cap.isOpened()) {
-  //     std::cerr << "无法打开视频文件!" << std::endl;
-  //     return -1;
-  //   }
-
+  ecu::Camera Camera(config_path);
   xz_vision::Detector detector(config_path, true);
+
+  // --- 定义 FPS 统计变量 ---
+  int frame_count = 0;            // 帧计数器
+  double total_time = 0;          // 累积耗时
+  const int stats_interval = 100; // 统计间隔（100帧）
 
   while (true) {
     cv::Mat raw_img;
-    // cap >> raw_img;
-
-    // if (raw_img.empty())
-    //   break;
-
     std::chrono::steady_clock::time_point timestamp;
 
+    // 增加空帧检查，防止 cvtColor 报错
     Camera.read(raw_img, timestamp);
+    if (raw_img.empty()) {
+      continue;
+    }
 
-    auto t_now = std::chrono::steady_clock::now();
+    // 1. 计时开始
+    auto start = std::chrono::steady_clock::now();
 
-    auto armors = detector.detect(raw_img); // 直接调用 detect 方法
+    // 2. 算法处理
+    auto armors = detector.detect(raw_img);
 
-    auto key = cv::waitKey(30);
+    // 3. 计时结束
+    auto end = std::chrono::steady_clock::now();
+
+    // 4. 统计逻辑
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    total_time += duration.count(); // 累加微秒
+    frame_count++;
+
+    // 5. 每隔 100 帧计算并输出一次
+    if (frame_count >= stats_interval) {
+      double avg_ms = (total_time / stats_interval) / 1000.0; // 100帧平均耗时（毫秒）
+      double avg_fps = 1000.0 / avg_ms;                       // 平均FPS
+
+      std::cout << "[INFO] Avg Time (last 100 frames): " << std::fixed << std::setprecision(2)
+                << avg_ms << " ms | Avg FPS: " << avg_fps << std::endl;
+
+      // 重置计数器
+      frame_count = 0;
+      total_time = 0;
+    }
+
+    auto key = cv::waitKey(1);
     if (key == 'q')
       break;
   }

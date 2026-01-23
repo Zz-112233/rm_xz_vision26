@@ -46,8 +46,12 @@ int main(int argc, char* argv[])
 
     auto last = std::chrono::steady_clock::now();
 
-    if (use_tradition)
+    if (use_tradition) {
+      auto start = std::chrono::steady_clock::now();
       armors = detector.detect(img);
+      auto endl = std::chrono::steady_clock::now();
+    }
+
     else
       armors = yolo.detect(img);
 
