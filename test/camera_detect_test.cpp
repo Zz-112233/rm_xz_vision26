@@ -30,11 +30,13 @@ int main(int argc, char* argv[])
   tools::Exiter exiter;
 
   ecu::Camera camera(config_path);
+  std::cout<<"1111111111"<<std::endl;
   xz_vision::Detector detector(config_path, true);
+    std::cout<<"1111111111"<<std::endl;
   xz_vision::YOLO yolo(config_path, true);
-
+  std::cout<<"1111111111"<<std::endl;
   std::chrono::steady_clock::time_point timestamp;
-
+  std::cout<<"1111111111"<<std::endl;
   while (!exiter.exit()) {
     cv::Mat img;
     std::list<xz_vision::Armor> armors;

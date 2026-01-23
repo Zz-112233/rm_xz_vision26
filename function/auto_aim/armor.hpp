@@ -1,4 +1,5 @@
-#pragma once
+#ifndef AUTO_AIM__ARMOR_HPP
+#define AUTO_AIM__ARMOR_HPP
 
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
@@ -7,112 +8,95 @@
 
 namespace xz_vision
 {
-  // clang-format off
-    enum Color
-    {
-        red,
-        blue,
-        extinguish,
-        purple,
-        gray
-    };
-    const std::vector<std::string> COLOR = {
-        "red", 
-        "blue", 
-        "extinguish", 
-        "purple",
-        "gray"
-    };
+enum Color
+{
+  red,
+  blue,
+  extinguish,
+  purple
+};
+const std::vector<std::string> COLOR = {"red", "blue", "extinguish", "purple"};
 
-    // 装甲板类型
-    enum ArmorType
-    {
-        big,
-        small
-    };
-    const std::vector<std::string> ARMOR_TYPE = {
-        "big", 
-        "small"
-    };
+// 装甲板尺寸类型
+enum ArmorType
+{
+  big,    // 大装甲板：230×127mm (英雄)
+  small,  // 标准装甲板：135×125mm (步兵、工程)
+  mini    // 迷你装甲板：比标准更小 (前哨站、基地)
+};
+const std::vector<std::string> ARMOR_TYPE = {"big", "small", "mini"};
 
-    // 装甲板名
-    enum ArmorName
-    {
-        one ,
-        two,
-        three,
-        four,
-        five,
-        sentry,
-        outpost,
-        base,
-        not_armor
-    };
-    const std::vector<std::string>
-        ARMOR_NAME = {
-            "one", 
-            "two", 
-            "three", 
-            "four", 
-            "sentry", 
-            "outpost", 
-            "base", 
-            "unkowned"
-        };
+enum ArmorName
+{
+  one = 0,
+  two,
+  three,
+  four,
+  five,
+  sentry,
+  outpost,
+  base,
+  not_armor
+};
+const std::vector<std::string> ARMOR_NAME = {"one",    "two",     "three", "four",     "five",
+                                              "sentry", "outpost", "base",  "not_armor"};
 
-    // 装甲板优先级
-    enum ArmorPriority
-    {
-        first = 1,
-        second,
-        third,
-        forth,
-        fifth
-    };
+enum ArmorPriority
+{
+  first = 1,
+  second,
+  third,
+  forth,
+  fifth
+};
 
-    
-    const std::vector<std::tuple<Color, ArmorName, ArmorType>> armor_properties = {
-    {blue, sentry, small},     {red, sentry, small},     {gray, sentry, small},
-    {blue, one, small},        {red, one, small},        {gray, one, small},
-    {blue, two, small},        {red, two, small},        {gray, two, small},
-    {blue, three, small},      {red, three, small},      {gray, three, small},
-    {blue, four, small},       {red, four, small},       {gray, four, small},
-    {blue, outpost, small},    {red, outpost, small},    {gray, outpost, small},
-    {blue, base, big},         {red, base, big},         {gray, base, big},      {purple, base, big},       
-    {blue, base, small},       {red, base, small},       {gray, base, small},    {purple, base, small},    
-    };
-  // clang-format on
+// 装甲板属性映射 (颜色, 名称, 类型)
+// clang-format off
+const std::vector<std::tuple<Color, ArmorName, ArmorType>> armor_properties = {
+  // 标准装甲板 (small): 步兵、工程
+  {blue, one, small},        {red, one, small},        {extinguish, one, small},
+  {blue, two, small},        {red, two, small},        {extinguish, two, small},
+  {blue, three, small},      {red, three, small},      {extinguish, three, small},
+  {blue, four, small},       {red, four, small},       {extinguish, four, small},
+  {blue, five, small},       {red, five, small},       {extinguish, five, small},
+  {blue, sentry, small},      {red, sentry, small},      {extinguish, sentry, small},
+   
+  // 迷你装甲板 (mini): 前哨站、基地
+  {blue, outpost, mini},     {red, outpost, mini},     {extinguish, outpost, mini},
+  {blue, base, mini},        {red, base, mini},        {extinguish, base, mini},    {purple, base, mini},
+  
+  // 大装甲板 (big): 英雄
+  {blue, one, big},          {red, one, big},          {extinguish, one, big},
+  {blue, three, big},        {red, three, big},        {extinguish, three, big}, 
+  {blue, four, big},         {red, four, big},         {extinguish, four, big},  
+  {blue, five, big},         {red, five, big},         {extinguish, five, big}
+};
+// clang-format on
 
-  // 灯条
-  struct Lightbar {
-    std::size_t id;                  // 灯条ID
-    Color color;                     // 灯条颜色
-    cv::Point2f center;              // 中心点
-    cv::Point2f top, bottom;         // 顶点与底点中点
-    cv::Point2f top2bottom;          // 顶到底方向向量
-    std::vector<cv::Point2f> points; // 顶点集合（四点）
-    double angle;                    // 倾斜角（单位：度）
-    double angle_error;              // 角度误差
-    double length;                   // 灯条长度
-    double width;                    // 灯条宽度
-    double ratio;                    // 长宽比
-    cv::RotatedRect rotated_rect;    // 旋转矩形
+struct Lightbar
+{
+  std::size_t id;
+  Color color;
+  cv::Point2f center, top, bottom, top2bottom;
+  std::vector<cv::Point2f> points;
+  double angle, angle_error, length, width, ratio;
+  cv::RotatedRect rotated_rect;
 
-    Lightbar(const cv::RotatedRect& rotated_rect, std::size_t id);
-    Lightbar() {};
-  };
+  Lightbar(const cv::RotatedRect & rotated_rect, std::size_t id);
+  Lightbar() {};
+};
 
-  // 装甲板
-  struct Armor {
-    Color color;
-    Lightbar left, right;            // 左右灯条
-    cv::Point2f center;              // 不是对角线交点，不能作为实际中心！
-    cv::Point2f center_norm;         // 归一化坐标
-    std::vector<cv::Point2f> points; // 四个角点（顶点）
+struct Armor
+{
+  Color color;
+  Lightbar left, right;
+  cv::Point2f center;
+  cv::Point2f center_norm;
+  std::vector<cv::Point2f> points;
 
-    double ratio;             // 两灯条的中点连线与长灯条的长度之比
-    double side_ratio;        // 长灯条与短灯条的长度之比
-    double rectangular_error; // 灯条和中点连线所成夹角与π/2的差值
+  double ratio;
+  double side_ratio;
+  double rectangular_error;
 
     ArmorType type;
     ArmorName name;
