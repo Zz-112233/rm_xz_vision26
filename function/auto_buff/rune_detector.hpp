@@ -165,7 +165,7 @@ namespace auto_buff
       return {m_armor.m_tlIn,  m_armor.m_trIn,  (m_armor.m_tlOut + m_armor.m_trOut) * 0.5,
               m_armor.m_blOut, m_armor.m_brOut, m_centerR.m_center_R};
     }
-    //============ 状态参数 ============
+    //============ 状态参数 ============//
     // private:
     cv::Mat m_image_arrow; // 检测箭头用的二值化图片
     cv::Mat m_image_armor; // 检测装甲板边框用的二值化图片
@@ -190,8 +190,12 @@ namespace auto_buff
     inline static Mode MODE;
 
     //============ 初始化参数 ============//
+    inline static Color color;
+
     bool whether_use_debug_pre;
     bool whether_use_debug_arrow;
+    bool whether_use_debug_local_roi;
+    bool whether_use_debug_armor;
 
     double param_thresh;
     double param_maxval;
@@ -268,8 +272,9 @@ namespace auto_buff
     bool find_centerR(CenterR& center, const std::vector<LightLine>& lightlines, const Arrow& arrow,
                       const Armor& armor);
     static double calAngleBetweenLightlines(const LightLine& l1, const LightLine& l2);
+    void reset_on_failure(const cv::Mat& image);
 
-    //====================绘图函数====================
+    //==================== 绘图函数 ====================
     void draw(const LightLine& lightline, const cv::Scalar& color, const int thickness = 1,
               const cv::Rect2f& localRoi = cv::Rect2f(0, 0, image_width, image_height));
 

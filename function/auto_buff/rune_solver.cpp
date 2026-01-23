@@ -56,17 +56,17 @@ namespace auto_buff
   {
     // ================= 世界坐标点（能量机关几何模型） =================
     m_world_points = {
-        {-0.5f * BuffDetection::armor_inside_width, BuffDetection::armor_inside_y, 0.0f},
+        {-0.5 * BuffDetection::armor_inside_width, BuffDetection::armor_inside_y, 0.0},
 
-        {0.5f * BuffDetection::armor_inside_width, BuffDetection::armor_inside_y, 0.0f},
+        {0.5 * BuffDetection::armor_inside_width, BuffDetection::armor_inside_y, 0.0},
 
-        {0.0f, -BuffDetection::armor_outside_y - BuffDetection::armor_outside_height, 0.0f},
+        {0.0, -BuffDetection::armor_outside_y - BuffDetection::armor_outside_height, 0.0},
 
-        {-0.5f * BuffDetection::armor_outside_width, -BuffDetection::armor_outside_y, 0.0f},
+        {-0.5 * BuffDetection::armor_outside_width, -BuffDetection::armor_outside_y, 0.0},
 
-        {0.5f * BuffDetection::armor_outside_width, -BuffDetection::armor_outside_y, 0.0f},
+        {0.5 * BuffDetection::armor_outside_width, -BuffDetection::armor_outside_y, 0.0},
 
-        {0.0f, BuffDetection::power_rune_radius, 0.0f}};
+        {0.0, BuffDetection::power_rune_radius, 0.0}};
 
     // ================= 状态量初始化 =================
     m_direction = auto_buff::Direction::UNKNOWN;
@@ -417,7 +417,7 @@ namespace auto_buff
    * @param[in] yaw
    * @return cv::Mat
    */
-  cv::Mat gimbal2Robot(double pitch, double yaw, double roll = 0)
+  cv::Mat gimbal2Robot(double pitch, double yaw, double roll)
   {
     cv::Mat matY = (cv::Mat_<double>(4, 4) << std::cos(-yaw), 0, std::sin(-yaw), 0, 0, 1, 0, 0,
                     -std::sin(-yaw), 0, std::cos(-yaw), 0, 0, 0, 0, 1);

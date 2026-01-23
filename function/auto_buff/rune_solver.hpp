@@ -55,9 +55,8 @@ namespace auto_buff
 
     std::vector<double> m_direction_data; // 计算旋转方向的数据
 
-    std::vector<std::pair<double, double>> m_fit_data; // 拟合数据
-    double m_angle_rel;             // 这一帧相对于第一帧的旋转角度（去除了装甲板切换的影响）
-    std::array<double, 5> m_params; // 拟合参数
+    std::vector<std::pair<double, double>> m_fit_data;  // 拟合数据
+    std::array<double, 5> m_params;                     // 拟合参数
     std::chrono::steady_clock::time_point m_frame_time; // 当前帧的时间戳
     std::chrono::steady_clock::time_point m_start_time; // 开始的时间戳
 
@@ -128,7 +127,7 @@ namespace auto_buff
                        const std::vector<cv::Point2f>& cameraPoints, const cv::Mat& intrinsicMatrix,
                        const cv::Mat& distCoeffs);
   cv::Mat camera2Gimbal(const std::array<double, 3>& r, const std::array<double, 3>& t);
-  cv::Mat gimbal2Robot(double pitch, double yaw, double roll);
+  cv::Mat gimbal2Robot(double pitch, double yaw, double roll = 0.0);
 
   std::pair<double, double> getPitchYawFromRobotCoor(const cv::Point3f& target, double bulletSpeed);
 

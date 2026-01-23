@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16.3)
 
-project(sp_xz_vision)
+project(rm_xz_vision)
 
 add_definitions(-DSPDLOG_FMT_EXTERNAL=1)
 
@@ -45,13 +45,14 @@ add_subdirectory(function/auto_buff)
 add_subdirectory(function/auto_aim)
 add_subdirectory(tools)
 
-# #################tests##################
+# ================= test =================
 add_executable(auto_buff_test test/auto_buff_test.cpp)
 add_executable(auto_buff_main test/auto_buff_main.cpp)
 add_executable(trad_cv_test test/trad_cv_test.cpp)
 add_executable(camera_detect_test test/camera_detect_test.cpp)
+
 # add_executable(exit_test test/exit_test.cpp)
-target_link_libraries(auto_buff_test ${OpenCV_LIBS} auto_buff yaml-cpp tools fmt::fmt)
+target_link_libraries(auto_buff_test ${OpenCV_LIBS} auto_buff ecu yaml-cpp tools fmt::fmt)
 target_link_libraries(auto_buff_main ${OpenCV_LIBS} auto_buff yaml-cpp tools fmt::fmt)
 target_link_libraries(camera_detect_test PRIVATE
     ${OpenCV_LIBS}
@@ -66,6 +67,7 @@ target_link_libraries(camera_detect_test PRIVATE
     ${MVCAMERA_CONTROL_LIB} # 添加海康相机库
     ${LIBUSB_LIB} # 添加libusb库
 )
+
 # target_link_libraries(auto_buff_test PRIVATE
 # ${OpenCV_LIBS}
 # auto_buff
@@ -81,7 +83,6 @@ target_link_libraries(camera_detect_test PRIVATE
 # )
 target_link_libraries(trad_cv_test PRIVATE
     ${OpenCV_LIBS}
-    auto_buff
     tools
     ecu
     auto_aim

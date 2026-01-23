@@ -13,11 +13,26 @@ namespace auto_buff
     tools::logger()->debug("-----BuffDetection环境配置中-----");
     auto yaml = YAML::LoadFile(config);
 
+    std::string colorStr = yaml["color"].as<std::string>();
+
+    std::transform(colorStr.begin(), colorStr.end(), colorStr.begin(), ::tolower);
+
+    if (colorStr == "red") {
+      color = Color::RED;
+    } else if (colorStr == "blue") {
+      color = Color::BLUE;
+    } else {
+      tools::logger()->error("unknown color:{} ", colorStr);
+    }
+
+    DRAW_COLOR = color == Color::BLUE ? RED : BLUE;
+
     // 调试文件
     whether_use_debug_pre = yaml["whether_use_debug_pre"].as<bool>();
     whether_use_debug_arrow = yaml["whether_use_debug_arrow"].as<bool>();
+    whether_use_debug_local_roi = yaml["whether_use_debug_local_roi"].as<bool>();
+    whether_use_debug_armor = yaml["whether_use_debug_armor"].as<bool>();
 
-    DRAW_COLOR = BLUE;
     image_width = yaml["image_width"].as<float>();
     image_height = yaml["image_height"].as<float>();
 
@@ -98,6 +113,12 @@ namespace auto_buff
     m_yaw = yaw;
   }
 
+  void BuffDetection::reset_on_failure(const cv::Mat& image)
+  {
+    m_global_roi = cv::Rect2f(0, 0, static_cast<float>(image.cols), static_cast<float>(image.rows));
+    m_lightArmorNum = 0;
+  }
+
   /**
    * @brief 检测箭头，装甲板和中心。如果所有检测均成功，则返回 true，否则返回 false。
    * @param[in] Frame        从相机传来的一帧图像，包括图像本身和其时间戳
@@ -106,42 +127,75 @@ namespace auto_buff
    */
   bool BuffDetection::detect(const Frame& frame)
   {
-    // 表示尚未进行过 ROI 交换
-    bool reverse = false;
     preprocess_imgs(frame);
-    // 预处理
-    if (check_arrow() == false) {
+
+    if (!check_arrow()) {
       m_status = Status::ARROW_FAILURE;
-      goto FAIL;
+      reset_on_failure(frame.m_image);
+      return false;
     }
 
-    //   set_local_roi();
-    // RESTART:
-    //   if (detect_armor() == false) {
-    //     m_status = Status::ARMOR_FAILURE;
-    //     goto FAIL;
-    //   }
-    //   if (detect_centerR() == false) {
-    //     m_status = Status::CENTER_FAILURE;
-    //     if (reverse == false) {
-    //       std::swap(m_center_roi, m_armor_roi);
-    //       reverse = true;
-    //       goto RESTART;
-    //     } else {
-    //       goto FAIL;
-    //     }
-    //   }
-    //   set_armor();
-    //   set_global_roi();
-    //   m_status = Status::SUCCESS;
-    return true;
-  FAIL:
-    // 如果检测失败，则将全局 roi 设为和原图片一样大小
-    m_global_roi = {0, 0, static_cast<float>(frame.m_image.cols),
-                    static_cast<float>(frame.m_image.rows)};
-    m_lightArmorNum = 0;
+    set_local_roi();
+
+    // 尝试最多两次
+    for (int attempt = 0; attempt < 2; ++attempt) {
+      if (detect_armor() && detect_centerR()) {
+        set_armor();
+        set_global_roi();
+        m_status = Status::SUCCESS;
+        return true;
+      }
+
+      if (attempt == 0) {
+        std::swap(m_center_roi, m_armor_roi);
+      }
+    }
+
+    // 两次都失败
+    m_status = Status::CENTER_FAILURE;
+    reset_on_failure(frame.m_image);
     return false;
-  };
+  }
+
+  // bool BuffDetection::detect(const Frame& frame)
+  // {
+  //   // 表示尚未进行过 ROI 交换
+  //   bool reverse = false;
+  //   preprocess_imgs(frame);
+  //   // 预处理
+  //   if (check_arrow() == false) {
+  //     m_status = Status::ARROW_FAILURE;
+  //     goto FAIL;
+  //   }
+  //   set_local_roi();
+
+  // RESTART:
+  //   if (detect_armor() == false) {
+  //     m_status = Status::ARMOR_FAILURE;
+  //     goto FAIL;
+  //   }
+  //   if (detect_centerR() == false) {
+  //     m_status = Status::CENTER_FAILURE;
+  //     if (reverse == false) {
+  //       std::swap(m_center_roi, m_armor_roi);
+  //       reverse = true;
+  //       goto RESTART;
+  //     } else {
+  //       goto FAIL;
+  //     }
+  //   }
+  //   set_armor();
+  //   set_global_roi();
+  //   m_status = Status::SUCCESS;
+  //   return true;
+
+  // FAIL:
+  //   // 如果检测失败，则将全局 roi 设为和原图片一样大小
+  //   m_global_roi = {0, 0, static_cast<float>(frame.m_image.cols),
+  //                   static_cast<float>(frame.m_image.rows)};
+  //   m_lightArmorNum = 0;
+  //   return false;
+  // };
 
   /**
     @brief 图像预处理
@@ -176,7 +230,7 @@ namespace auto_buff
     if (whether_use_debug_pre) {
       cv::imshow("binary_img", m_image_show);
       cv::imshow("m_image_arrow", m_image_arrow);
-      cv::imshow("m_image_armor", m_image_armor); // 调试用}
+      // cv::imshow("m_image_armor", m_image_armor); // 调试用}
     }
   };
 
@@ -197,6 +251,7 @@ namespace auto_buff
       fillArea += l.m_contour_area;
       pointLineThresh += l.m_length / lightlines.size();
     });
+
     // 滤除距离较大的点
     m_contour.clear();
     cv::Vec4f line;
@@ -259,16 +314,18 @@ namespace auto_buff
     std::vector<LightLine> lightlines;
     find_arrow_lightlines(m_image_arrow, lightlines, m_global_roi);
 
-    // 灯条匹配箭头
-    if (match_arrow(m_arrow, lightlines, m_global_roi) == false) {
-      return false;
-    }
-
     if (whether_use_debug_arrow) {
       for (const auto& lightline : lightlines) {
         draw(lightline, GREEN);
       }
       draw(m_arrow.m_rotated_rect, WHITE, 2);
+
+      cv::imshow("arrow", m_image_show);
+    }
+
+    // 灯条匹配箭头
+    if (match_arrow(m_arrow, lightlines, m_global_roi) == false) {
+      return false;
     }
 
     return true;
@@ -333,6 +390,8 @@ namespace auto_buff
       return false;
     }
     // 判断面积
+
+    // std::cout << "arrow_area: " << arrow.m_area << std::endl;
     if (arrow.m_area > max_arrow_area) {
       return false;
     }
@@ -352,13 +411,18 @@ namespace auto_buff
     // 寻找轮廓
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(binary, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+
     for (const auto& contour : contours) {
       LightLine lightline(contour, roi);
+      // std::cout << "lightline.m_area: " << lightline.m_area << std::endl;
       // 判断面积
       if (tools::inRange(lightline.m_area, min_arrow_lightline_area, max_arrow_lightline_area) ==
           false) {
         continue;
       }
+
+      std::cout << "lightline.m_area: " << lightline.m_area << std::endl;
+
       // 判断长宽比
       if (lightline.m_aspect_ratio > max_arrow_lightline_aspect_ratio) {
         continue;
@@ -545,47 +609,98 @@ namespace auto_buff
    */
   bool BuffDetection::detect_armor()
   {
-    // armor roi 区域的图像为检测图像，center roi 区域为备用图像
-    cv::Mat detect = (m_image_armor & m_local_mask)(m_armor_roi);
-    cv::Mat backup = (m_image_armor & m_local_mask)(m_center_roi);
+    // 1. 结构体改为值传递，避免引用绑定的麻烦
+    struct TrialRegion {
+      cv::Mat image;
+      cv::Rect roi;
+
+      // 使用 cv::Rect 的基类或具体类型，确保兼容性
+      TrialRegion(cv::Mat img, cv::Rect r)
+          : image(img)
+          , roi(r)
+      {
+      }
+    };
+
+    std::vector<TrialRegion> trials;
+
+    // 使用 emplace_back，它会自动处理 cv::Rect2f 到 cv::Rect 的转换
+    trials.emplace_back((m_image_armor & m_local_mask)(m_armor_roi), m_armor_roi);
+    trials.emplace_back((m_image_armor & m_local_mask)(m_center_roi), m_center_roi);
+
     std::vector<LightLine> lightlines;
-    // 调换标志位，如果检测不到，则调换检测图像和备用图像，并将其置为 true
-    bool reverse = false;
-  RESTART:
-    // 寻找符合装甲板边框要求的灯条
-    if (find_armor_lightlines(detect, lightlines, m_global_roi, m_armor_roi) == false) {
-      // 如果找不到并且已经调换过图像了，则检测失败
-      if (reverse == true) {
-        return false;
+    bool found = false;
+
+    for (auto& trial : trials) {
+      lightlines.clear();
+      // 注意：find_armor_lightlines 的参数类型需与 trial.roi 一致
+      if (find_armor_lightlines(trial.image, lightlines, m_global_roi, trial.roi)) {
+        if (find_armor(m_armor, lightlines, m_arrow)) {
+          // 如果成功，更新类成员变量（如果需要保持逻辑一致性）
+          m_armor_roi = trial.roi;
+          found = true;
+          break;
+        }
       }
-      // 如果找不到并且没有调换过，则调换图像并置标志位
-      std::swap(detect, backup);
-      std::swap(m_armor_roi, m_center_roi);
-      reverse = true;
-      // 回到检测装甲板灯条处
-      goto RESTART;
     }
-#if SHOW_IMAGE >= 2
-    for (const auto& lightline : lightlines) {
-      draw(lightline, DRAW_COLOR, 1, m_armor_roi);
-    }
-#endif
-    // 根据灯条匹配装甲板
-    if (find_armor(m_armor, lightlines, m_arrow) == false) {
-      if (reverse == true) {
-        return false;
+
+    if (!found)
+      return false;
+
+    // ... Debug 绘制逻辑 ...
+    if (whether_use_debug_armor) {
+      for (const auto& lightline : lightlines) {
+        draw(lightline, DRAW_COLOR, 1, m_armor_roi);
       }
-      std::swap(detect, backup);
-      std::swap(m_armor_roi, m_center_roi);
-      reverse = true;
-      goto RESTART;
+      cv::circle(m_image_show, m_armor.m_center, m_armor.m_outside.m_length * 0.45,
+                 cv::Scalar(225, 225, 225), 2);
     }
-#if SHOW_IMAGE >= 1
-    cv::circle(m_image_show, m_armor.m_center, m_armor.m_outside.m_length * 0.45,
-               cv::Scalar(225, 225, 225), 2);
-#endif
+
     return true;
-  };
+  }
+  //   bool BuffDetection::detect_armor()
+  //   {
+  //     // armor roi 区域的图像为检测图像，center roi 区域为备用图像
+  //     cv::Mat detect = (m_image_armor & m_local_mask)(m_armor_roi);
+  //     cv::Mat backup = (m_image_armor & m_local_mask)(m_center_roi);
+  //     std::vector<LightLine> lightlines;
+  //     // 调换标志位，如果检测不到，则调换检测图像和备用图像，并将其置为 true
+  //     bool reverse = false;
+  //   RESTART:
+  //     // 寻找符合装甲板边框要求的灯条
+  //     if (find_armor_lightlines(detect, lightlines, m_global_roi, m_armor_roi) == false) {
+  //       // 如果找不到并且已经调换过图像了，则检测失败
+  //       if (reverse == true) {
+  //         return false;
+  //       }
+  //       // 如果找不到并且没有调换过，则调换图像并置标志位
+  //       std::swap(detect, backup);
+  //       std::swap(m_armor_roi, m_center_roi);
+  //       reverse = true;
+  //       // 回到检测装甲板灯条处
+  //       goto RESTART;
+  //     }
+
+  // #endif
+  //     // 根据灯条匹配装甲板
+  //     if (find_armor(m_armor, lightlines, m_arrow) == false) {
+  //       if (reverse == true) {
+  //         return false;
+  //       }
+  //       std::swap(detect, backup);
+  //       std::swap(m_armor_roi, m_center_roi);
+  //       reverse = true;
+  //       goto RESTART;
+  //     }
+  //     if (whether_use_debug_armor)
+  //       for (const auto& lightline : lightlines) {
+  //         draw(lightline, DRAW_COLOR, 1, m_armor_roi);
+  //       }
+  //     cv::circle(m_image_show, m_armor.m_center, m_armor.m_outside.m_length * 0.45,
+  //                cv::Scalar(225, 225, 225), 2);
+  // #endif
+  //     return true;
+  //   };
 
   /**
    * @brief 判断两个灯条是否满足在一个装甲板内的条件，是则返回 true，否则为 false
@@ -874,8 +989,10 @@ namespace auto_buff
       std::swap(m_armor_roi, m_center_roi);
     }
 
-    // draw(m_armorRoi, Param::YELLOW);
-    // draw(m_centerRoi, Param::DRAW_COLOR);
+    if (whether_use_debug_local_roi) {
+      draw(m_armor_roi, YELLOW);
+      draw(m_center_roi, DRAW_COLOR);
+    }
   }
 
   /**

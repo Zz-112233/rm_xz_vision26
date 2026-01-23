@@ -11,11 +11,12 @@
 #include "tools/rotary_tool.hpp"
 
 const std::string keys =
-  "{help h usage ? |                        | 输出命令行参数说明 }"
-  "{@config-path   | /home/zzy/rm_xz_vision26/configs/how_to_set_params.yaml   | yaml配置文件的路径}"
-  "{tradition t    |  false                 | 是否使用传统方法识别}";
+    "{help h usage ? |                        | 输出命令行参数说明 }"
+    "{@config-path   | /home/chaichai/project/rm_xz_vision26/configs/how_to_set_params.yaml   | "
+    "yaml配置文件的路径}"
+    "{tradition t    |  false                 | 是否使用传统方法识别}";
 
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
   // 读取命令行参数
   cv::CommandLineParser cli(argc, argv, keys);
@@ -40,7 +41,8 @@ int main(int argc, char * argv[])
 
     camera.read(img, timestamp);
 
-    if (img.empty()) break;
+    if (img.empty())
+      break;
 
     auto last = std::chrono::steady_clock::now();
 
@@ -54,7 +56,8 @@ int main(int argc, char * argv[])
     tools::logger()->info("{:.2f} fps", 1 / dt);
 
     auto key = cv::waitKey(33);
-    if (key == 'q') break;
+    if (key == 'q')
+      break;
   }
 
   return 0;
