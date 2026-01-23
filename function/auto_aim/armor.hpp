@@ -131,4 +131,5 @@ struct Armor
     // 用于优化的原始数据
     double yaw_raw = 0.0;
   };
-} // namespace xz_vision
+}// namespace xz_vision
+#endif 

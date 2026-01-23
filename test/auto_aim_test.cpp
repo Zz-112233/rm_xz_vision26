@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     auto t_now = std::chrono::steady_clock::now();
 
     auto armors = detector.detect(raw_img); // 直接调用 detect 方法
-
+    
     // 按 ESC 退出, 按空格暂停
     int key = cv::waitKey(30);
     if (key == 27) // ESC
